@@ -1,4 +1,4 @@
-package com.paperledger.app.ui.theme
+package com.paperledger.app.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

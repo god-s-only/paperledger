@@ -1,4 +1,4 @@
-package com.paperledger.app.ui.theme
+package com.paperledger.app.presentation.theme
 
 import android.app.Activity
 import android.os.Build

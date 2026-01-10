@@ -1,4 +1,4 @@
-package com.paperledger.app.ui.theme
+package com.paperledger.app.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
