@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -20,6 +22,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        android.buildFeatures.buildConfig = true
+
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        buildConfigField("String", "ALPACA_API_KEY", "\"${properties.getProperty("ALPACA_API_KEY")}\"")
+        buildConfigField("String", "ALPACA_API_SECRET", "\"${properties.getProperty("ALPACA_API_SECRET")}\"")
     }
 
     buildTypes {
