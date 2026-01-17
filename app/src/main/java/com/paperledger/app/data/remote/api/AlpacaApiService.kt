@@ -6,7 +6,9 @@ import com.paperledger.app.data.remote.dto.assets.AssetsResponseDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AlpacaApiService {
@@ -19,6 +21,12 @@ interface AlpacaApiService {
 
     @POST("/v1/accounts")
     suspend fun createAccount(
+        @Body accountRequest: AccountRequestDTO
+    ): Response<AccountResponseDTO>
+
+    @PATCH("/v1/accounts/{account_id}")
+    suspend fun updateAccount(
+        @Path("account_id") accountId: String,
         @Body accountRequest: AccountRequestDTO
     ): Response<AccountResponseDTO>
 }
