@@ -2,10 +2,13 @@ package com.paperledger.app.presentation.ui.features.auth.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.paperledger.app.core.UIEvent
 import com.paperledger.app.domain.usecase.auth.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -13,6 +16,9 @@ import javax.inject.Inject
 class SignUpViewModel @Inject constructor(private val signUpUseCase: SignUpUseCase): ViewModel() {
     private val _state = MutableStateFlow(SignUpState())
     val state = _state.asStateFlow()
+
+    private val _uiEvent = Channel<UIEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     fun onEvent(event: SignUpEvent){
         when(event){
@@ -162,5 +168,10 @@ class SignUpViewModel @Inject constructor(private val signUpUseCase: SignUpUseCa
                 state.postalCode.isNotBlank() &&
                 state.accountAgreed &&
                 state.customerAgreed
+    }
+    private fun sendUIEvent(event: UIEvent){
+        viewModelScope.launch {
+            _uiEvent.send(event)
+        }
     }
 }

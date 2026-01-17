@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import android.graphics.BitmapFactory
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.paperledger.app.domain.models.account.ContactData
 import com.paperledger.app.domain.models.account.DisclosuresData
 import com.paperledger.app.domain.models.account.DocumentsData
@@ -74,7 +75,8 @@ import java.util.Base64
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     onSignUpComplete: (SignUpData) -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    viewModel: SignUpViewModel = hiltViewModel()
 ) {
     var currentStep by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(pageCount = { 5 })
@@ -83,6 +85,8 @@ fun SignUpScreen(
     val borderColor = if (isDarkTheme) DarkBorder else LightBorder
     val surfaceColor = if (isDarkTheme) DarkSurface else LightSurface
     val coroutineScope = rememberCoroutineScope()
+
+    val state = viewModel.state.collectAsState()
 
     Scaffold(
         topBar = {
