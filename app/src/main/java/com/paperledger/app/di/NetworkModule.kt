@@ -1,5 +1,6 @@
 package com.paperledger.app.di
 
+import com.paperledger.app.BuildConfig
 import com.paperledger.app.core.BASE_URL
 import com.paperledger.app.core.alpacaAuthHeader
 import com.paperledger.app.data.remote.api.AlpacaApiService
@@ -32,10 +33,11 @@ object NetworkModule {
     fun provideOkHttpClient(): OkHttpClient{
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
-                val apiKey = "YOUR_API_KEY"
-                val apiSecret = "YOUR_API_SECRET"
                 val newRequest = chain.request().newBuilder()
-                    .addHeader("Authorization", alpacaAuthHeader(apiKey, apiSecret))
+                    .addHeader(
+                        "Authorization",
+                        alpacaAuthHeader(BuildConfig.ALPACA_API_KEY, BuildConfig.ALPACA_API_SECRET)
+                    )
                     .build()
                 chain.proceed(newRequest)
             }

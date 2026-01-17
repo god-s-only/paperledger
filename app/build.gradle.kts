@@ -22,7 +22,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        android.buildFeatures.buildConfig = true
 
         val properties = Properties()
         properties.load(project.rootProject.file("local.properties").inputStream())
@@ -48,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
