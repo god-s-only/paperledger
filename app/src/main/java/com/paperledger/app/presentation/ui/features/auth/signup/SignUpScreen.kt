@@ -1,7 +1,9 @@
 package com.paperledger.app.presentation.ui.features.auth.signup
 
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -25,7 +27,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -42,12 +45,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.decodeBitmap
+import android.graphics.BitmapFactory
 import com.paperledger.app.presentation.theme.DarkBorder
 import com.paperledger.app.presentation.theme.DarkSurface
 import com.paperledger.app.presentation.theme.LightBorder
 import com.paperledger.app.presentation.theme.LightSurface
-import com.paperledger.app.presentation.theme.TradingGreen
+import com.paperledger.app.presentation.theme.TradingBlue
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.Base64
@@ -59,7 +62,7 @@ fun SignUpScreen(
     onSignUpComplete: (SignUpData) -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
-    var currentStep by remember { mutableStateOf(0) }
+    var currentStep by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(pageCount = { 5 })
     val signUpData = remember { mutableStateOf(SignUpData()) }
     val isDarkTheme = MaterialTheme.colorScheme.background == Color(0xFF1E1E1E)
@@ -188,6 +191,9 @@ fun SignUpScreen(
                 onPreviousClick = {
                     if (currentStep > 0) {
                         currentStep--
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(currentStep)
+                        }
                     }
                 },
                 onNextClick = {
@@ -214,7 +220,7 @@ fun SignUpProgressIndicator(
     modifier: Modifier = Modifier
 ) {
     val isDarkTheme = MaterialTheme.colorScheme.background == Color(0xFF1E1E1E)
-    val activeColor = TradingGreen
+    val activeColor = TradingBlue
     val inactiveColor = if (isDarkTheme) Color(0xFF424242) else Color(0xFFE0E0E0)
 
     Row(
@@ -353,7 +359,7 @@ fun NavigationButtons(
         Button(
             onClick = onNextClick,
             colors = ButtonDefaults.buttonColors(
-                containerColor = TradingGreen
+                containerColor = TradingBlue
             ),
             modifier = Modifier.weight(1f, fill = false)
         ) {
@@ -650,6 +656,7 @@ fun DisclosuresPage(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DocumentsPage(
     documentsData: DocumentsData,
@@ -695,9 +702,9 @@ fun DocumentsPage(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.CloudUpload,
+                    imageVector = Icons.Default.Add,
                     contentDescription = null,
-                    tint = TradingGreen,
+                    tint = TradingBlue,
                     modifier = Modifier.size(32.dp)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -753,11 +760,11 @@ fun DocumentsPage(
                 onClick = { launcher.launch("*/*") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = TradingGreen
+                    containerColor = TradingBlue
                 )
             ) {
                 Icon(
-                    imageVector = Icons.Default.CloudUpload,
+                    imageVector = Icons.Default.Add,
                     contentDescription = "Upload",
                     modifier = Modifier.size(18.dp)
                 )
@@ -768,7 +775,7 @@ fun DocumentsPage(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, TradingGreen, RoundedCornerShape(8.dp)),
+                    .border(1.dp, TradingBlue, RoundedCornerShape(8.dp)),
                 colors = CardDefaults.cardColors(containerColor = surfaceColor),
                 shape = RoundedCornerShape(8.dp),
             ) {
@@ -784,30 +791,32 @@ fun DocumentsPage(
                             text = "File attached",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TradingGreen
+                            color = TradingBlue
                         )
                         Text(
                             text = if (fileName.isNotEmpty()) fileName else "Selected file",
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isDarkTheme) Color.White else Color.Black
                         )
-                        // Optionally show a preview if it's an image (very basic, try/catch)
-                        try {
-                            val data = Base64.getDecoder().decode(documentsData.content)
-                            val bitmap =
-                                if (data.isNotEmpty()) androidx.core.graphics.decodeBitmap(data) else null
-                            if (bitmap != null) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Image(
-                                    bitmap = bitmap.asImageBitmap(),
-                                    contentDescription = "Preview",
-                                    modifier = Modifier
-                                        .height(80.dp)
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        } catch (_: Throwable) { /* ignore */
+                        // Optionally show a preview if it's an image (very basic, safe/side-effect-free in composable)
+                        val previewBitmap: ImageBitmap? = remember(documentsData.content) {
+                            runCatching {
+                                val data = Base64.getDecoder().decode(documentsData.content)
+                                android.graphics.BitmapFactory.decodeByteArray(data, 0, data.size)
+                                    ?.asImageBitmap()
+                            }.getOrNull()
+                        }
+
+                        if (previewBitmap != null) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Image(
+                                bitmap = previewBitmap,
+                                contentDescription = "Preview",
+                                modifier = Modifier
+                                    .height(80.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
                         }
                     }
                     IconButton(
@@ -945,7 +954,7 @@ fun InputField(
                 focusedContainerColor = surfaceColor,
                 unfocusedContainerColor = surfaceColor,
                 disabledContainerColor = surfaceColor,
-                focusedIndicatorColor = TradingGreen,
+                focusedIndicatorColor = TradingBlue,
                 unfocusedIndicatorColor = borderColor,
                 focusedTextColor = if (isDarkTheme) Color.White else Color.Black,
                 unfocusedTextColor = if (isDarkTheme) Color.White else Color.Black
@@ -969,7 +978,7 @@ fun DisclosureItem(
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
         shape = RoundedCornerShape(8.dp),
         border = if (isChecked)
-            androidx.compose.foundation.BorderStroke(1.dp, TradingGreen)
+            androidx.compose.foundation.BorderStroke(1.dp, TradingBlue)
         else null
     ) {
         Row(
@@ -992,15 +1001,27 @@ fun DisclosureItem(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
+            // Sleeker switch design using new Material3 Switch and accent blue
             Switch(
                 checked = isChecked,
                 onCheckedChange = onCheckedChange,
+                thumbContent = {
+                    if (isChecked) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Checked",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = TradingGreen,
-                    checkedTrackColor = TradingGreen.copy(alpha = 0.3f),
+                    checkedThumbColor = TradingBlue,
+                    checkedTrackColor = TradingBlue.copy(alpha = 0.3f),
                     uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                )
+                ),
+                modifier = Modifier.height(32.dp)
             )
         }
     }
@@ -1046,7 +1067,7 @@ fun DropdownMenuField(
                     focusedContainerColor = surfaceColor,
                     unfocusedContainerColor = surfaceColor,
                     disabledContainerColor = surfaceColor,
-                    focusedIndicatorColor = TradingGreen,
+                    focusedIndicatorColor = TradingBlue,
                     unfocusedIndicatorColor = borderColor,
                     focusedTextColor = if (isDarkTheme) Color.White else Color.Black,
                     unfocusedTextColor = if (isDarkTheme) Color.White else Color.Black

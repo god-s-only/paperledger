@@ -53,6 +53,7 @@ android {
 
 dependencies {
     val room_version = "2.8.4"
+    val nav_version = "2.9.6"
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -76,4 +77,5 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
+    implementation("androidx.navigation:navigation-compose:$nav_version")
 }
