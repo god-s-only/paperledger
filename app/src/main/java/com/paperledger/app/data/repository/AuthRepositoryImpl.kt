@@ -30,7 +30,7 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
         return when(e){
             is IOException -> AppError.NetworkUnavailable
             is HttpException -> AppError.HttpError(e.code())
-            else -> AppError.NetworkUnavailable
+            else -> AppError.Unknown(e.message)
         }
     }
 }
