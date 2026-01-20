@@ -4,4 +4,5 @@ import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
 
 interface AuthRepository {
     suspend fun createAccount(accountRequest: AccountRequestDTO): Result<String>
+    suspend fun updateAccount(accountId: String, accountRequest: AccountRequestDTO): Result<Unit>
 }

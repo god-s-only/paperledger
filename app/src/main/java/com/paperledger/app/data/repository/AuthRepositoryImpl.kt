@@ -26,6 +26,26 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
             }
         }
     }
+
+    override suspend fun updateAccount(
+        accountId: String,
+        accountRequest: AccountRequestDTO
+    ): Result<Unit> {
+        return withContext(Dispatchers.IO){
+            try {
+                val res = alpacaApi.updateAccount(accountId, accountRequest)
+                if(res.isSuccessful){
+                    val body = res.body() ?: return@withContext Result.failure(AppError.EmptyBody)
+                    Result.success(Unit)
+                }else{
+                    Result.failure(AppError.HttpError(res.code()))
+                }
+            }catch (e: Exception){
+                Result.failure(mapError(e))
+            }
+        }
+    }
+
     private fun mapError(e: Exception): AppError{
         return when(e){
             is IOException -> AppError.NetworkUnavailable
