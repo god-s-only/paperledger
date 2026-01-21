@@ -9,7 +9,7 @@ data class SignUpState(
     // Account Flow Tracking
     val accountId: String? = null,
     val currentPage: Int = 1,
-    val totalPages: Int = 7,
+    val totalPages: Int = 5,
     val canNavigateNext: Boolean = false,
 
     // Identity Information
@@ -18,18 +18,16 @@ data class SignUpState(
     val dateOfBirth: String = "",
     val taxId: String = "",
     val countryCode: String = "",
+    val fundingSource: List<String> = listOf("employment_income"),
 
     // Contact Information
     val email: String = "",
     val phoneNumber: String = "",
-    val streetAddress: String = "",
+    val streetAddress: List<String> = emptyList(), // changed to List<String>
+    val unit: String = "",
     val city: String = "",
     val state: String = "",
     val postalCode: String = "",
-
-    // Account Preferences
-    val accountType: String = "",
-    val fundingSource: String = "",
 
     // Agreement Terms
     val accountAgreed: Boolean = false,
@@ -37,7 +35,11 @@ data class SignUpState(
     val marginAgreed: Boolean = false,
     val optionsAgreed: Boolean = false,
 
-    val hasTrustedContact: Boolean = false,
+    // Enabled Assets
+    val enabledAssets: List<String> = listOf("us_equity"),
+
+    // Trusted Contact Information
+    val hasTrustedContact: Boolean = true,
     val trustedContactName: String = "",
     val trustedContactPhone: String = "",
 
