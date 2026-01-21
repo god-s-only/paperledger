@@ -5,13 +5,15 @@ data class SignUpData(
     val identity: IdentityData = IdentityData(),
     val disclosures: DisclosuresData = DisclosuresData(),
     val documents: DocumentsData = DocumentsData(),
-    val trustedContact: TrustedContactData = TrustedContactData()
+    val trustedContact: TrustedContactData = TrustedContactData(),
+    val accountPreferences: AccountPreferencesData = AccountPreferencesData()
 )
 
 data class ContactData(
     val emailAddress: String = "",
     val phoneNumber: String = "",
-    val streetAddress: String = "",
+    val streetAddress: List<String> = emptyList(),
+    val unit: String = "",
     val city: String = "",
     val state: String = "",
     val postalCode: String = ""
@@ -27,7 +29,9 @@ data class IdentityData(
     val taxId: String = "",
     val taxIdType: String = "",
     val countryOfTaxResidence: String = "",
-    val fundingSource: String = ""
+    val fundingSource: List<String> = listOf("employment_income"),
+    val selectedFundingSources: List<String>? = null,
+    val selectedAssets: List<String>? = null
 )
 
 data class DisclosuresData(
@@ -48,4 +52,9 @@ data class TrustedContactData(
     val givenName: String = "",
     val familyName: String = "",
     val emailAddress: String = ""
+)
+
+data class AccountPreferencesData(
+    val fundingSource: List<String> = listOf("employment_income"),
+    val enabledAssets: List<String> = listOf("us_equity")
 )

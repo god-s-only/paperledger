@@ -45,10 +45,30 @@ fun ContactInfoPage(
         )
         InputField(
             label = "Street Address",
-            value = contactData.streetAddress,
-            onValueChange = { onContactDataChange(contactData.copy(streetAddress = it)) },
+            value = contactData.streetAddress.firstOrNull() ?: "",
+            onValueChange = { newAddress ->
+                val updatedAddress = if (contactData.streetAddress.isEmpty()) {
+                    listOf(newAddress, newAddress) // API expects both entries
+                } else {
+                    contactData.streetAddress.mapIndexed { index, address ->
+                        if (index == 0 || index == 1) newAddress else address
+                    }
+                }
+                onContactDataChange(contactData.copy(streetAddress = updatedAddress))
+            },
             keyboardType = KeyboardType.Text,
             placeholder = "Enter your street address",
+            surfaceColor = surfaceColor,
+            borderColor = borderColor,
+            isDarkTheme = isDarkTheme
+        )
+
+        InputField(
+            label = "Unit / Apartment",
+            value = contactData.unit,
+            onValueChange = { onContactDataChange(contactData.copy(unit = it)) },
+            keyboardType = KeyboardType.Text,
+            placeholder = "Apt, Suite, Unit (optional)",
             surfaceColor = surfaceColor,
             borderColor = borderColor,
             isDarkTheme = isDarkTheme
@@ -80,15 +100,21 @@ fun ContactInfoPage(
                 modifier = Modifier.weight(1f)
             )
         }
-        InputField(
-            label = "Postal Code",
-            value = contactData.postalCode,
-            onValueChange = { onContactDataChange(contactData.copy(postalCode = it)) },
-            keyboardType = KeyboardType.Number,
-            placeholder = "Enter postal code",
-            surfaceColor = surfaceColor,
-            borderColor = borderColor,
-            isDarkTheme = isDarkTheme
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            InputField(
+                label = "Postal Code",
+                value = contactData.postalCode,
+                onValueChange = { onContactDataChange(contactData.copy(postalCode = it)) },
+                keyboardType = KeyboardType.Number,
+                placeholder = "Enter postal code",
+                surfaceColor = surfaceColor,
+                borderColor = borderColor,
+                isDarkTheme = isDarkTheme,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.AppError
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.data.remote.dto.account.request.*
+import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.auth.SignUpUseCase
 import com.paperledger.app.domain.usecase.auth.StoreUserIdUseCase
 import com.paperledger.app.domain.usecase.auth.UpdateAccountUseCase
@@ -22,36 +23,62 @@ import javax.inject.Inject
 class SignUpViewModel @Inject constructor(
     private val signUpUseCase: SignUpUseCase,
     private val storeUserIdUseCase: StoreUserIdUseCase,
-    private val updateAccountUseCase: UpdateAccountUseCase
+    private val updateAccountUseCase: UpdateAccountUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(SignUpState())
     val state = _state.asStateFlow()
 
     private val _uiEvent = Channel<UIEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+    
+    fun signUp(contactRequest: AccountRequestDTO){
+        viewModelScope.launch {
+            signUpUseCase(contactRequest).fold(
+                onSuccess = { accountId ->
+                    _state.value = _state.value.copy(
+                        accountId = accountId,
+                        currentPage = 2,
+                        isLoading = false
+                    )
+                    storeUserIdUseCase(accountId)
+                },
+                onFailure = { error ->
+                    _state.update { it.copy(isLoading = false, error = mapErrorMessage(error)) }
+                }
+            )
+        }
+    }
 
+    fun updateAccount(accountRequest: AccountRequestDTO){
+        viewModelScope.launch {
+            updateAccountUseCase.invoke(_state.value.accountId ?: "", accountRequest).fold(
+                onSuccess = {
+                    _state.update { 
+                        it.copy(
+                            isLoading = false
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _state.update { 
+                        it.copy(
+                            isLoading = false,
+                            error = mapErrorMessage(error)
+                        )
+                    }
+                }
+            )
+        }
+    }
+    
     fun onEvent(event: SignUpEvent) {
         when (event) {
             SignUpEvent.OnNextFromContactPage -> {
                 if (isContactPageValid()) {
-                    viewModelScope.launch {
-                        _state.value = _state.value.copy(isLoading = true, error = null)
-                        val contactRequest = buildContactRequestDTO(_state.value)
-
-                        signUpUseCase(contactRequest).fold(
-                            onSuccess = { accountId ->
-                                _state.value = _state.value.copy(
-                                    accountId = accountId,
-                                    currentPage = 2,
-                                    isLoading = false
-                                )
-                                storeUserIdUseCase(accountId)
-                            },
-                            onFailure = { error ->
-                                _state.update { it.copy(isLoading = false, error = error.message) }
-                            }
-                        )
-                    }
+                    _state.value = _state.value.copy(isLoading = true, error = null)
+                    val contactRequest = buildContactRequestDTO(_state.value)
+                    signUp(contactRequest)
                 } else {
                     _state.value =
                         _state.value.copy(error = "Please complete all required contact fields")
@@ -63,7 +90,21 @@ class SignUpViewModel @Inject constructor(
                     viewModelScope.launch {
                         _state.value = _state.value.copy(isLoading = true, error = null)
                         val identityRequest = buildIdentityRequestDTO(_state.value)
-                        _state.value = _state.value.copy(currentPage = 3, isLoading = false)
+                        updateAccountUseCase.invoke(_state.value.accountId ?: "", identityRequest)
+                            .fold(
+                                onSuccess = {
+                                    _state.value =
+                                        _state.value.copy(currentPage = 3, isLoading = false)
+                                },
+                                onFailure = { error ->
+                                    _state.update {
+                                        it.copy(
+                                            isLoading = false,
+                                            error = mapErrorMessage(error)
+                                        )
+                                    }
+                                }
+                            )
                     }
                 } else {
                     _state.value =
@@ -75,7 +116,20 @@ class SignUpViewModel @Inject constructor(
                 viewModelScope.launch {
                     _state.value = _state.value.copy(isLoading = true, error = null)
                     val disclosuresRequest = buildDisclosuresRequestDTO(_state.value)
-                    _state.value = _state.value.copy(currentPage = 4, isLoading = false)
+                    updateAccountUseCase.invoke(_state.value.accountId ?: "", disclosuresRequest)
+                        .fold(
+                            onSuccess = {
+                                _state.value = _state.value.copy(currentPage = 4, isLoading = false)
+                            },
+                            onFailure = { error ->
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = mapErrorMessage(error)
+                                    )
+                                }
+                            }
+                        )
                 }
             }
 
@@ -84,7 +138,21 @@ class SignUpViewModel @Inject constructor(
                     viewModelScope.launch {
                         _state.value = _state.value.copy(isLoading = true, error = null)
                         val documentsRequest = buildDocumentsRequestDTO(_state.value)
-                        _state.value = _state.value.copy(currentPage = 5, isLoading = false)
+                        updateAccountUseCase.invoke(_state.value.accountId ?: "", documentsRequest)
+                            .fold(
+                                onSuccess = {
+                                    _state.value =
+                                        _state.value.copy(currentPage = 5, isLoading = false)
+                                },
+                                onFailure = { error ->
+                                    _state.update {
+                                        it.copy(
+                                            isLoading = false,
+                                            error = mapErrorMessage(error)
+                                        )
+                                    }
+                                }
+                            )
                     }
                 } else {
                     _state.value = _state.value.copy(error = "Please upload your identity document")
@@ -95,7 +163,21 @@ class SignUpViewModel @Inject constructor(
                 viewModelScope.launch {
                     _state.value = _state.value.copy(isLoading = true, error = null)
                     val trustedContactRequest = buildTrustedContactRequestDTO(_state.value)
-                    _state.value = _state.value.copy(isLoading = false, isSuccess = true)
+                    updateAccountUseCase.invoke(_state.value.accountId ?: "", trustedContactRequest)
+                        .fold(
+                            onSuccess = {
+                                _state.value =
+                                    _state.value.copy(isLoading = false, isSuccess = true)
+                            },
+                            onFailure = { error ->
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = mapErrorMessage(error)
+                                    )
+                                }
+                            }
+                        )
                 }
             }
 
@@ -265,7 +347,9 @@ class SignUpViewModel @Inject constructor(
         return state.firstName.isNotBlank() &&
                 state.lastName.isNotBlank() &&
                 state.dateOfBirth.isNotBlank() &&
-                state.countryCode.isNotBlank()
+                state.countryCode.isNotBlank() &&
+                state.fundingSource.isNotEmpty() &&
+                state.enabledAssets.isNotEmpty()
     }
 
     private fun isContactPageValid(): Boolean {
@@ -552,6 +636,22 @@ class SignUpViewModel @Inject constructor(
                 familyName = "",
                 emailAddress = ""
             )
+        }
+    }
+    private fun mapErrorMessage(error: Throwable): String {
+        return when (error) {
+            is AppError.HttpError -> {
+                when (error.code) {
+                    400 -> "Bad Request"
+                    409 -> "Account already exists"
+                    422 -> "Invalid Input"
+                    else -> error.message ?: "Unknown Error"
+                }
+            }
+            is AppError.Unknown -> error.message ?: "An unknown error occurred"
+            is AppError.EmptyBody -> "Response body is empty"
+            is AppError.NetworkUnavailable -> "Network unavailable. Please check your connection"
+            else -> error.message ?: "An error occurred"
         }
     }
 }

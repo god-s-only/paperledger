@@ -56,6 +56,10 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
         }
     }
 
+    override suspend fun getUserId(): String? {
+        return paperLedgerSession.getUserId()
+    }
+
     private fun mapError(e: Exception): AppError{
         return when(e){
             is IOException -> AppError.NetworkUnavailable

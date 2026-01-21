@@ -5,6 +5,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,4 +24,10 @@ class PaperLedgerSession @Inject constructor(@ApplicationContext private val con
             it[PreferencesKeys.SESSION_TOKEN] = id
         }
     }
-}
+    suspend fun getUserId(): String?{
+        return context.paperLedger.data.map {
+            it[PreferencesKeys.SESSION_TOKEN]
+        }.first()
+        }
+    }
+
