@@ -1,6 +1,7 @@
 package com.paperledger.app.data.repository
 
 import com.paperledger.app.core.AppError
+import com.paperledger.app.data.local.PaperLedgerSession
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
 import com.paperledger.app.domain.repository.AuthRepository
@@ -10,7 +11,7 @@ import okio.IOException
 import retrofit2.HttpException
 import javax.inject.Inject
 
-class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiService): AuthRepository {
+class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiService, private val paperLedgerSession: PaperLedgerSession): AuthRepository {
     override suspend fun createAccount(accountRequest: AccountRequestDTO): Result<String> {
         return withContext(Dispatchers.IO){
             try {
@@ -43,6 +44,15 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
             }catch (e: Exception){
                 Result.failure(mapError(e))
             }
+        }
+    }
+
+    override suspend fun storeUserId(userId: String): Result<Unit> {
+        return try {
+            paperLedgerSession.storeUserId(userId)
+            Result.success(Unit)
+        }catch (e: Exception){
+            Result.failure(e)
         }
     }
 

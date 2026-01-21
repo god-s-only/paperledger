@@ -6,6 +6,12 @@ data class SignUpState(
     val isSuccess: Boolean = false,
     val error: String? = null,
 
+    // Account Flow Tracking
+    val accountId: String? = null,
+    val currentPage: Int = 1,
+    val totalPages: Int = 7,
+    val canNavigateNext: Boolean = false,
+
     // Identity Information
     val firstName: String = "",
     val lastName: String = "",

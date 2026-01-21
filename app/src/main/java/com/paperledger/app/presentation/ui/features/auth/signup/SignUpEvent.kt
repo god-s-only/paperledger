@@ -42,9 +42,32 @@ sealed class SignUpEvent {
     data class OnDocumentUploaded(val documentId: String) : SignUpEvent()
     data class OnDocumentRemoved(val documentId: String) : SignUpEvent()
 
-    // Form Actions
-    data object OnSubmit : SignUpEvent()
+    // Page Navigation - Incremental Account Flow
+    // Page 1: Identity → Create Account
+    data object OnNextFromIdentityPage : SignUpEvent()
+
+    // Page 2: Contact → Update Account  
+    data object OnNextFromContactPage : SignUpEvent()
+
+    // Page 3: Account Preferences → Update Account
+    data object OnNextFromPreferencesPage : SignUpEvent()
+
+    // Page 4: Agreements → Update Account
+    data object OnNextFromAgreementsPage : SignUpEvent()
+
+    // Page 5: Trusted Contact → Update Account
+    data object OnNextFromTrustedContactPage : SignUpEvent()
+
+    // Page 6: Disclosures → Update Account
+    data object OnNextFromDisclosuresPage : SignUpEvent()
+
+    // Page 7: Documents → Update Account (Final)
+    data object OnSubmitFromDocumentsPage : SignUpEvent()
+
+    // Navigation Actions
+    data object OnNavigateToPreviousPage : SignUpEvent()
+    data object OnNavigateToNextPage : SignUpEvent()
     data object OnNavigateBack : SignUpEvent()
-    data object OnFormReset : SignUpEvent()
+    data object OnRetrySubmit : SignUpEvent()
 
 }
