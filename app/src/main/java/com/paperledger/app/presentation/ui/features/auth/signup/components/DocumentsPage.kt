@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -42,24 +44,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.paperledger.app.domain.models.account.DocumentsData
 import com.paperledger.app.presentation.theme.TradingBlue
-import com.paperledger.app.presentation.ui.features.auth.signup.DropdownMenuField
+import com.paperledger.app.presentation.ui.features.auth.signup.SignUpEvent
+import com.paperledger.app.presentation.ui.features.auth.signup.SignUpState
 import java.util.Base64
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DocumentsPage(
-    documentsData: DocumentsData,
-    onDocumentsDataChange: (DocumentsData) -> Unit,
+    state: SignUpState,
+    onEvent: (SignUpEvent) -> Unit,
     surfaceColor: Color,
     borderColor: Color,
     isDarkTheme: Boolean
 ) {
     val context = LocalContext.current
-
-    // For preview: this will not work, so fallback to plain UI in preview
-    val isPreview = LocalContext.current.applicationContext.toString().contains("Preview")
     var isLoading by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("") }
 
@@ -68,21 +67,22 @@ fun DocumentsPage(
         if (uri != null) {
             isLoading = true
             val inputStream = context.contentResolver.openInputStream(uri)
-            inputStream?.let {
+            inputStream?.use {
                 val byteArray = it.readBytes()
-                it.close()
                 // Encode to Base64
                 val base64Content = Base64.getEncoder().encodeToString(byteArray)
-                // Optionally, try to fetch the file name
+                // Store the content as document
+                onEvent(SignUpEvent.OnDocumentUploaded(base64Content))
                 fileName = uri.lastPathSegment ?: "Document"
-                onDocumentsDataChange(documentsData.copy(content = base64Content))
             }
             isLoading = false
         }
     }
 
+    val scrollState = rememberScrollState()
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.verticalScroll(scrollState)
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -113,40 +113,10 @@ fun DocumentsPage(
             }
         }
 
-        DropdownMenuField(
-            label = "Document Type",
-            value = documentsData.documentType,
-            onValueChange = { onDocumentsDataChange(documentsData.copy(documentType = it)) },
-            options = listOf(
-                "identity_verification",
-                "passport",
-                "drivers_license",
-                "national_id"
-            ),
-            placeholder = "Select document type",
-            surfaceColor = surfaceColor,
-            borderColor = borderColor,
-            isDarkTheme = isDarkTheme
-        )
-
-        DropdownMenuField(
-            label = "Document Sub-type",
-            value = documentsData.documentSubType,
-            onValueChange = { onDocumentsDataChange(documentsData.copy(documentSubType = it)) },
-            options = listOf(
-                "passport",
-                "license"
-            ),
-            placeholder = "Select sub-type",
-            surfaceColor = surfaceColor,
-            borderColor = borderColor,
-            isDarkTheme = isDarkTheme
-        )
-
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Upload section: if content exists, show File info and delete button, otherwise show upload button
-        if (documentsData.content.isEmpty()) {
+        // Upload section
+        if (state.uploadedDocuments.isEmpty()) {
             Button(
                 onClick = { launcher.launch("*/*") },
                 modifier = Modifier.fillMaxWidth(),
@@ -179,7 +149,7 @@ fun DocumentsPage(
                 ) {
                     Column {
                         Text(
-                            text = "File attached",
+                            text = "${state.uploadedDocuments.size} file(s) attached",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = TradingBlue
@@ -189,32 +159,12 @@ fun DocumentsPage(
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isDarkTheme) Color.White else Color.Black
                         )
-                        // Optionally show a preview if it's an image (very basic, safe/side-effect-free in composable)
-                        val previewBitmap: ImageBitmap? = remember(documentsData.content) {
-                            runCatching {
-                                val data = Base64.getDecoder().decode(documentsData.content)
-                                android.graphics.BitmapFactory.decodeByteArray(data, 0, data.size)
-                                    ?.asImageBitmap()
-                            }.getOrNull()
-                        }
-
-                        if (previewBitmap != null) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Image(
-                                bitmap = previewBitmap,
-                                contentDescription = "Preview",
-                                modifier = Modifier
-                                    .height(80.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
                     }
                     IconButton(
                         onClick = {
-                            onDocumentsDataChange(
-                                documentsData.copy(content = "")
-                            )
+                            state.uploadedDocuments.firstOrNull()?.let { docId ->
+                                onEvent(SignUpEvent.OnDocumentRemoved(docId))
+                            }
                         }
                     ) {
                         Icon(
@@ -226,5 +176,8 @@ fun DocumentsPage(
                 }
             }
         }
+
+        // Add padding at bottom
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }

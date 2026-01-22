@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -18,19 +21,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.paperledger.app.domain.models.account.TrustedContactData
+import com.paperledger.app.presentation.ui.features.auth.signup.SignUpEvent
+import com.paperledger.app.presentation.ui.features.auth.signup.SignUpState
 
 
 @Composable
 fun TrustedContactPage(
-    trustedContactData: TrustedContactData,
-    onTrustedContactDataChange: (TrustedContactData) -> Unit,
+    state: SignUpState,
+    onEvent: (SignUpEvent) -> Unit,
     surfaceColor: Color,
     borderColor: Color,
     isDarkTheme: Boolean
 ) {
+    val scrollState = rememberScrollState()
+
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.verticalScroll(scrollState)
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -65,8 +72,8 @@ fun TrustedContactPage(
         ) {
             InputField(
                 label = "First Name",
-                value = trustedContactData.givenName,
-                onValueChange = { onTrustedContactDataChange(trustedContactData.copy(givenName = it)) },
+                value = state.trustedContactName,
+                onValueChange = { onEvent(SignUpEvent.OnTrustedContactNameChange(it)) },
                 keyboardType = KeyboardType.Text,
                 placeholder = "First name",
                 surfaceColor = surfaceColor,
@@ -75,11 +82,11 @@ fun TrustedContactPage(
                 modifier = Modifier.weight(1f)
             )
             InputField(
-                label = "Last Name",
-                value = trustedContactData.familyName,
-                onValueChange = { onTrustedContactDataChange(trustedContactData.copy(familyName = it)) },
-                keyboardType = KeyboardType.Text,
-                placeholder = "Last name",
+                label = "Phone",
+                value = state.trustedContactPhone,
+                onValueChange = { onEvent(SignUpEvent.OnTrustedContactPhoneChange(it)) },
+                keyboardType = KeyboardType.Phone,
+                placeholder = "Contact phone number",
                 surfaceColor = surfaceColor,
                 borderColor = borderColor,
                 isDarkTheme = isDarkTheme,
@@ -87,15 +94,7 @@ fun TrustedContactPage(
             )
         }
 
-        InputField(
-            label = "Email Address",
-            value = trustedContactData.emailAddress,
-            onValueChange = { onTrustedContactDataChange(trustedContactData.copy(emailAddress = it)) },
-            keyboardType = KeyboardType.Email,
-            placeholder = "Contact email address",
-            surfaceColor = surfaceColor,
-            borderColor = borderColor,
-            isDarkTheme = isDarkTheme
-        )
+        // Add padding at bottom
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }

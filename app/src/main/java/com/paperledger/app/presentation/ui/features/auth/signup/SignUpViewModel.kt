@@ -1,5 +1,6 @@
 package com.paperledger.app.presentation.ui.features.auth.signup
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.AppError
@@ -42,6 +43,7 @@ class SignUpViewModel @Inject constructor(
                         isLoading = false
                     )
                     storeUserIdUseCase(accountId)
+                    Log.d("AccountID", accountId)
                 },
                 onFailure = { error ->
                     _state.update { it.copy(isLoading = false, error = mapErrorMessage(error)) }
@@ -50,134 +52,59 @@ class SignUpViewModel @Inject constructor(
         }
     }
 
-    fun updateAccount(accountRequest: AccountRequestDTO){
-        viewModelScope.launch {
-            updateAccountUseCase.invoke(_state.value.accountId ?: "", accountRequest).fold(
-                onSuccess = {
-                    _state.update { 
-                        it.copy(
-                            isLoading = false
-                        )
-                    }
-                },
-                onFailure = { error ->
-                    _state.update { 
-                        it.copy(
-                            isLoading = false,
-                            error = mapErrorMessage(error)
-                        )
-                    }
-                }
-            )
-        }
-    }
-    
     fun onEvent(event: SignUpEvent) {
         when (event) {
             SignUpEvent.OnNextFromContactPage -> {
                 if (isContactPageValid()) {
-                    _state.value = _state.value.copy(isLoading = true, error = null)
-                    val contactRequest = buildContactRequestDTO(_state.value)
-                    signUp(contactRequest)
+                    _state.value = _state.value.copy(
+                        currentPage = 2,
+                        error = null
+                    )
                 } else {
-                    _state.value =
-                        _state.value.copy(error = "Please complete all required contact fields")
+                    _state.value = _state.value.copy(
+                        error = "Please complete all required contact fields"
+                    )
                 }
             }
 
             SignUpEvent.OnNextFromIdentityPage -> {
                 if (isIdentityPageValid()) {
-                    viewModelScope.launch {
-                        _state.value = _state.value.copy(isLoading = true, error = null)
-                        val identityRequest = buildIdentityRequestDTO(_state.value)
-                        updateAccountUseCase.invoke(_state.value.accountId ?: "", identityRequest)
-                            .fold(
-                                onSuccess = {
-                                    _state.value =
-                                        _state.value.copy(currentPage = 3, isLoading = false)
-                                },
-                                onFailure = { error ->
-                                    _state.update {
-                                        it.copy(
-                                            isLoading = false,
-                                            error = mapErrorMessage(error)
-                                        )
-                                    }
-                                }
-                            )
-                    }
+                    _state.value = _state.value.copy(
+                        currentPage = 3,
+                        error = null
+                    )
                 } else {
-                    _state.value =
-                        _state.value.copy(error = "Please complete all required identity fields")
+                    _state.value = _state.value.copy(
+                        error = "Please complete all required identity fields"
+                    )
                 }
             }
 
             SignUpEvent.OnNextFromDisclosuresPage -> {
-                viewModelScope.launch {
-                    _state.value = _state.value.copy(isLoading = true, error = null)
-                    val disclosuresRequest = buildDisclosuresRequestDTO(_state.value)
-                    updateAccountUseCase.invoke(_state.value.accountId ?: "", disclosuresRequest)
-                        .fold(
-                            onSuccess = {
-                                _state.value = _state.value.copy(currentPage = 4, isLoading = false)
-                            },
-                            onFailure = { error ->
-                                _state.update {
-                                    it.copy(
-                                        isLoading = false,
-                                        error = mapErrorMessage(error)
-                                    )
-                                }
-                            }
-                        )
-                }
+                _state.value = _state.value.copy(
+                    currentPage = 4,
+                    error = null
+                )
             }
 
             SignUpEvent.OnNextFromDocumentsPage -> {
-                if (state.value.uploadedDocuments.isNotEmpty()) {
-                    viewModelScope.launch {
-                        _state.value = _state.value.copy(isLoading = true, error = null)
-                        val documentsRequest = buildDocumentsRequestDTO(_state.value)
-                        updateAccountUseCase.invoke(_state.value.accountId ?: "", documentsRequest)
-                            .fold(
-                                onSuccess = {
-                                    _state.value =
-                                        _state.value.copy(currentPage = 5, isLoading = false)
-                                },
-                                onFailure = { error ->
-                                    _state.update {
-                                        it.copy(
-                                            isLoading = false,
-                                            error = mapErrorMessage(error)
-                                        )
-                                    }
-                                }
-                            )
-                    }
+                if (_state.value.uploadedDocuments.isNotEmpty()) {
+                    _state.value = _state.value.copy(
+                        currentPage = 5,
+                        error = null
+                    )
                 } else {
-                    _state.value = _state.value.copy(error = "Please upload your identity document")
+                    _state.value = _state.value.copy(
+                        error = "Please upload at least one document"
+                    )
                 }
             }
 
             SignUpEvent.OnSubmitFromTrustedContactPage -> {
                 viewModelScope.launch {
                     _state.value = _state.value.copy(isLoading = true, error = null)
-                    val trustedContactRequest = buildTrustedContactRequestDTO(_state.value)
-                    updateAccountUseCase.invoke(_state.value.accountId ?: "", trustedContactRequest)
-                        .fold(
-                            onSuccess = {
-                                _state.value =
-                                    _state.value.copy(isLoading = false, isSuccess = true)
-                            },
-                            onFailure = { error ->
-                                _state.update {
-                                    it.copy(
-                                        isLoading = false,
-                                        error = mapErrorMessage(error)
-                                    )
-                                }
-                            }
-                        )
+                    val completeRequest = buildCompleteAccountRequest(_state.value)
+                    signUp(completeRequest)
                 }
             }
 
@@ -381,7 +308,7 @@ class SignUpViewModel @Inject constructor(
         }
     }
 
-    private fun buildIdentityRequestDTO(state: SignUpState): AccountRequestDTO {
+    private fun buildCompleteAccountRequest(state: SignUpState): AccountRequestDTO {
         val identity = Identity(
             givenName = state.firstName,
             familyName = state.lastName,
@@ -394,18 +321,6 @@ class SignUpViewModel @Inject constructor(
             fundingSource = state.fundingSource
         )
 
-        return AccountRequestDTO(
-            agreements = emptyList(),
-            contact = createContactFromState(state),
-            disclosures = createDefaultDisclosures(),
-            documents = emptyList(),
-            enabledAssets = emptyList(),
-            identity = identity,
-            trustedContact = createEmptyTrustedContact()
-        )
-    }
-
-    private fun buildContactRequestDTO(state: SignUpState): AccountRequestDTO {
         val contact = Contact(
             emailAddress = state.email,
             phoneNumber = state.phoneNumber,
@@ -416,18 +331,6 @@ class SignUpViewModel @Inject constructor(
             unit = state.unit
         )
 
-        return AccountRequestDTO(
-            agreements = emptyList(),
-            contact = contact,
-            disclosures = createDefaultDisclosures(),
-            documents = emptyList(),
-            enabledAssets = emptyList(),
-            identity = createEmptyIdentity(),
-            trustedContact = createEmptyTrustedContact()
-        )
-    }
-
-    private fun buildDisclosuresRequestDTO(state: SignUpState): AccountRequestDTO {
         val disclosures = Disclosures(
             isControlPerson = state.isControlPerson,
             isAffiliatedExchangeOrFinra = state.isAffiliatedExchange,
@@ -435,18 +338,6 @@ class SignUpViewModel @Inject constructor(
             immediateFamilyExposed = state.immediateFamilyExposed
         )
 
-        return AccountRequestDTO(
-            agreements = buildAgreementsList(state),
-            contact = createContactFromState(state),
-            disclosures = disclosures,
-            documents = emptyList(),
-            enabledAssets = state.enabledAssets,
-            identity = createIdentityFromState(state),
-            trustedContact = createTrustedContactFromState(state)
-        )
-    }
-
-    private fun buildDocumentsRequestDTO(state: SignUpState): AccountRequestDTO {
         val documents = state.uploadedDocuments.map { documentId ->
             Document(
                 documentType = "identity_verification",
@@ -456,18 +347,6 @@ class SignUpViewModel @Inject constructor(
             )
         }
 
-        return AccountRequestDTO(
-            agreements = buildAgreementsList(state),
-            contact = createContactFromState(state),
-            disclosures = createDisclosuresFromState(state),
-            documents = documents,
-            enabledAssets = state.enabledAssets,
-            identity = createIdentityFromState(state),
-            trustedContact = createTrustedContactFromState(state)
-        )
-    }
-
-    private fun buildTrustedContactRequestDTO(state: SignUpState): AccountRequestDTO {
         val trustedContact = if (state.hasTrustedContact) {
             TrustedContact(
                 givenName = state.trustedContactName,
@@ -475,66 +354,54 @@ class SignUpViewModel @Inject constructor(
                 emailAddress = state.email
             )
         } else {
-            createEmptyTrustedContact()
+            TrustedContact(
+                givenName = "",
+                familyName = "",
+                emailAddress = ""
+            )
         }
 
+        val agreements = buildAgreementsList(state)
+
         return AccountRequestDTO(
-            agreements = buildAgreementsList(state),
-            contact = createContactFromState(state),
-            disclosures = createDisclosuresFromState(state),
-            documents = emptyList(),
+            agreements = agreements,
+            contact = contact,
+            disclosures = disclosures,
+            documents = documents,
             enabledAssets = state.enabledAssets,
-            identity = createIdentityFromState(state),
+            identity = identity,
             trustedContact = trustedContact
         )
     }
 
+    private fun createTrustedContactFromState(state: SignUpState): TrustedContact {
+        return if (state.hasTrustedContact) {
+            TrustedContact(
+                givenName = state.trustedContactName,
+                familyName = "Doe",
+                emailAddress = state.email
+            )
+        } else {
+            TrustedContact(
+                givenName = "",
+                familyName = "",
+                emailAddress = ""
+            )
+        }
+    }
+
     private fun buildAgreementsList(state: SignUpState): List<Agreement> {
+        // Always include customer agreement for account creation
         val agreements = mutableListOf<Agreement>()
 
-        if (state.accountAgreed) {
-            agreements.add(
-                Agreement(
-                    agreement = "account_agreement",
-                    signedAt = getCurrentTimestamp(),
-                    ipAddress = "127.0.0.1",
-                    revision = ""
-                )
+        agreements.add(
+            Agreement(
+                agreement = "customer_agreement",
+                signedAt = getCurrentTimestamp(),
+                ipAddress = "127.0.0.1",
+                revision = ""
             )
-        }
-
-        if (state.customerAgreed) {
-            agreements.add(
-                Agreement(
-                    agreement = "customer_agreement",
-                    signedAt = getCurrentTimestamp(),
-                    ipAddress = "127.0.0.1",
-                    revision = ""
-                )
-            )
-        }
-
-        if (state.marginAgreed) {
-            agreements.add(
-                Agreement(
-                    agreement = "margin_agreement",
-                    signedAt = getCurrentTimestamp(),
-                    ipAddress = "127.0.0.1",
-                    revision = ""
-                )
-            )
-        }
-
-        if (state.optionsAgreed) {
-            agreements.add(
-                Agreement(
-                    agreement = "options_agreement",
-                    signedAt = getCurrentTimestamp(),
-                    ipAddress = "127.0.0.1",
-                    revision = ""
-                )
-            )
-        }
+        )
 
         return agreements
     }
@@ -623,21 +490,6 @@ class SignUpViewModel @Inject constructor(
         )
     }
 
-    private fun createTrustedContactFromState(state: SignUpState): TrustedContact {
-        return if (state.hasTrustedContact) {
-            TrustedContact(
-                givenName = state.trustedContactName,
-                familyName = "Doe",
-                emailAddress = state.email
-            )
-        } else {
-            TrustedContact(
-                givenName = "",
-                familyName = "",
-                emailAddress = ""
-            )
-        }
-    }
     private fun mapErrorMessage(error: Throwable): String {
         return when (error) {
             is AppError.HttpError -> {

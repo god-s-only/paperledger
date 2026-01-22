@@ -4,29 +4,36 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.paperledger.app.domain.models.account.ContactData
-import com.paperledger.app.presentation.ui.features.auth.signup.InputField
+import com.paperledger.app.presentation.ui.features.auth.signup.SignUpEvent
+import com.paperledger.app.presentation.ui.features.auth.signup.SignUpState
 
 @Composable
 fun ContactInfoPage(
-    contactData: ContactData,
-    onContactDataChange: (ContactData) -> Unit,
+    state: SignUpState,
+    onEvent: (SignUpEvent) -> Unit,
     surfaceColor: Color,
     borderColor: Color,
     isDarkTheme: Boolean
 ) {
+    val scrollState = rememberScrollState()
+
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.verticalScroll(scrollState)
     ) {
         InputField(
             label = "Email Address",
-            value = contactData.emailAddress,
-            onValueChange = { onContactDataChange(contactData.copy(emailAddress = it)) },
+            value = state.email,
+            onValueChange = { onEvent(SignUpEvent.OnEmailChange(it)) },
             keyboardType = KeyboardType.Email,
             placeholder = "Enter your email",
             surfaceColor = surfaceColor,
@@ -35,8 +42,8 @@ fun ContactInfoPage(
         )
         InputField(
             label = "Phone Number",
-            value = contactData.phoneNumber,
-            onValueChange = { onContactDataChange(contactData.copy(phoneNumber = it)) },
+            value = state.phoneNumber,
+            onValueChange = { onEvent(SignUpEvent.OnPhoneNumberChange(it)) },
             keyboardType = KeyboardType.Phone,
             placeholder = "Enter your phone number",
             surfaceColor = surfaceColor,
@@ -45,16 +52,16 @@ fun ContactInfoPage(
         )
         InputField(
             label = "Street Address",
-            value = contactData.streetAddress.firstOrNull() ?: "",
+            value = state.streetAddress.firstOrNull() ?: "",
             onValueChange = { newAddress ->
-                val updatedAddress = if (contactData.streetAddress.isEmpty()) {
-                    listOf(newAddress, newAddress) // API expects both entries
+                val updatedAddress = if (state.streetAddress.isEmpty()) {
+                    listOf(newAddress, newAddress)
                 } else {
-                    contactData.streetAddress.mapIndexed { index, address ->
+                    state.streetAddress.mapIndexed { index, address ->
                         if (index == 0 || index == 1) newAddress else address
                     }
                 }
-                onContactDataChange(contactData.copy(streetAddress = updatedAddress))
+                onEvent(SignUpEvent.OnStreetAddressChange(updatedAddress))
             },
             keyboardType = KeyboardType.Text,
             placeholder = "Enter your street address",
@@ -65,8 +72,8 @@ fun ContactInfoPage(
 
         InputField(
             label = "Unit / Apartment",
-            value = contactData.unit,
-            onValueChange = { onContactDataChange(contactData.copy(unit = it)) },
+            value = state.unit,
+            onValueChange = { onEvent(SignUpEvent.OnUnitChange(it)) },
             keyboardType = KeyboardType.Text,
             placeholder = "Apt, Suite, Unit (optional)",
             surfaceColor = surfaceColor,
@@ -79,8 +86,8 @@ fun ContactInfoPage(
         ) {
             InputField(
                 label = "City",
-                value = contactData.city,
-                onValueChange = { onContactDataChange(contactData.copy(city = it)) },
+                value = state.city,
+                onValueChange = { onEvent(SignUpEvent.OnCityChange(it)) },
                 keyboardType = KeyboardType.Text,
                 placeholder = "City",
                 surfaceColor = surfaceColor,
@@ -90,8 +97,8 @@ fun ContactInfoPage(
             )
             InputField(
                 label = "State",
-                value = contactData.state,
-                onValueChange = { onContactDataChange(contactData.copy(state = it)) },
+                value = state.state,
+                onValueChange = { onEvent(SignUpEvent.OnStateChange(it)) },
                 keyboardType = KeyboardType.Text,
                 placeholder = "State",
                 surfaceColor = surfaceColor,
@@ -106,8 +113,8 @@ fun ContactInfoPage(
         ) {
             InputField(
                 label = "Postal Code",
-                value = contactData.postalCode,
-                onValueChange = { onContactDataChange(contactData.copy(postalCode = it)) },
+                value = state.postalCode,
+                onValueChange = { onEvent(SignUpEvent.OnPostalCodeChange(it)) },
                 keyboardType = KeyboardType.Number,
                 placeholder = "Enter postal code",
                 surfaceColor = surfaceColor,
@@ -116,5 +123,8 @@ fun ContactInfoPage(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        // Add padding at bottom to make last field visible above navigation buttons
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }

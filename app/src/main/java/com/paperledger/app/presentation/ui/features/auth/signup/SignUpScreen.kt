@@ -74,19 +74,15 @@ import java.util.Base64
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
-    onSignUpComplete: (SignUpData) -> Unit = {},
+    onSignUpComplete: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     viewModel: SignUpViewModel = hiltViewModel()
 ) {
-    var currentStep by remember { mutableIntStateOf(0) }
-    val pagerState = rememberPagerState(pageCount = { 5 })
-    val signUpData = remember { mutableStateOf(SignUpData()) }
+    val state by viewModel.state.collectAsState()
     val isDarkTheme = MaterialTheme.colorScheme.background == Color(0xFF1E1E1E)
     val borderColor = if (isDarkTheme) DarkBorder else LightBorder
     val surfaceColor = if (isDarkTheme) DarkSurface else LightSurface
     val coroutineScope = rememberCoroutineScope()
-
-    val state = viewModel.state.collectAsState()
 
     Scaffold(
         topBar = {
@@ -98,15 +94,6 @@ fun SignUpScreen(
                         color = if (isDarkTheme) Color.White else Color.Black
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = if (isDarkTheme) Color.White else Color.Black
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = surfaceColor
                 )
@@ -115,144 +102,173 @@ fun SignUpScreen(
         containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Progress Indicator
-            SignUpProgressIndicator(
-                currentStep = currentStep,
-                totalSteps = 5,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            )
-
-            // Page Title
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Main Content
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                    .fillMaxSize()
+                    .padding(paddingValues)
             ) {
-                Text(
-                    text = getPageTitle(currentStep),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDarkTheme) Color.White else Color.Black
+                // Progress Indicator
+                SignUpProgressIndicator(
+                    currentStep = state.currentPage,
+                    totalSteps = state.totalPages,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 )
-                Text(
-                    text = getPageDescription(currentStep),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
 
-            // HorizontalPager for steps
-            HorizontalPager(
-                state = pagerState,
-                userScrollEnabled = false,
-                modifier = Modifier.weight(1f)
-            ) { page ->
+                // Page Title
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState())
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
                 ) {
-                    when (page) {
-                        0 -> ContactInfoPage(
-                            contactData = signUpData.value.contact,
-                            onContactDataChange = { signUpData.value = signUpData.value.copy(contact = it) },
+                    Text(
+                        text = getPageTitle(state.currentPage),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDarkTheme) Color.White else Color.Black
+                    )
+                    Text(
+                        text = getPageDescription(state.currentPage),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                // Error Message
+                state.error?.let { error ->
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFEBEE)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = error,
+                            color = Color(0xFFB71C1C),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+
+                // Page Content based on current page
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    when (state.currentPage) {
+                        1 -> ContactInfoPage(
+                            state = state,
+                            onEvent = viewModel::onEvent,
                             surfaceColor = surfaceColor,
                             borderColor = borderColor,
                             isDarkTheme = isDarkTheme
                         )
-                        1 -> IdentityInfoPage(
-                            identityData = signUpData.value.identity,
-                            onIdentityDataChange = { signUpData.value = signUpData.value.copy(identity = it) },
+                        2 -> IdentityInfoPage(
+                            state = state,
+                            onEvent = viewModel::onEvent,
                             surfaceColor = surfaceColor,
                             borderColor = borderColor,
                             isDarkTheme = isDarkTheme
                         )
-                        2 -> DisclosuresPage(
-                            disclosuresData = signUpData.value.disclosures,
-                            onDisclosuresDataChange = { signUpData.value = signUpData.value.copy(disclosures = it) },
+                        3 -> DisclosuresPage(
+                            state = state,
+                            onEvent = viewModel::onEvent,
                             surfaceColor = surfaceColor,
                             borderColor = borderColor,
                             isDarkTheme = isDarkTheme
                         )
-                        3 -> DocumentsPage(
-                            documentsData = signUpData.value.documents,
-                            onDocumentsDataChange = { signUpData.value = signUpData.value.copy(documents = it) },
+                        4 -> DocumentsPage(
+                            state = state,
+                            onEvent = viewModel::onEvent,
                             surfaceColor = surfaceColor,
                             borderColor = borderColor,
                             isDarkTheme = isDarkTheme
                         )
-                        4 -> TrustedContactPage(
-                            trustedContactData = signUpData.value.trustedContact,
-                            onTrustedContactDataChange = { 
-                                signUpData.value = signUpData.value.copy(trustedContact = it) 
-                            },
+                        5 -> TrustedContactPage(
+                            state = state,
+                            onEvent = viewModel::onEvent,
                             surfaceColor = surfaceColor,
                             borderColor = borderColor,
                             isDarkTheme = isDarkTheme
                         )
                     }
                 }
+
+                // Navigation Buttons
+                NavigationButtons(
+                    currentStep = state.currentPage,
+                    totalSteps = state.totalPages,
+                    onPreviousClick = {
+                        if (state.currentPage > 1) {
+                            viewModel.onEvent(SignUpEvent.OnNavigateBack)
+                        }
+                    },
+                    onNextClick = {
+                        when (state.currentPage) {
+                            1 -> viewModel.onEvent(SignUpEvent.OnNextFromContactPage)
+                            2 -> viewModel.onEvent(SignUpEvent.OnNextFromIdentityPage)
+                            3 -> viewModel.onEvent(SignUpEvent.OnNextFromDisclosuresPage)
+                            4 -> viewModel.onEvent(SignUpEvent.OnNextFromDocumentsPage)
+                            5 -> viewModel.onEvent(SignUpEvent.OnSubmitFromTrustedContactPage)
+                        }
+                    },
+                    isDarkTheme = isDarkTheme,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
 
-            // Navigation Buttons
-            NavigationButtons(
-                currentStep = currentStep,
-                totalSteps = 5,
-                onPreviousClick = {
-                    if (currentStep > 0) {
-                        currentStep--
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(currentStep)
-                        }
+            // Loading Overlay
+            if (state.isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            color = Color(0xFF2196F3),
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            text = "Processing...",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     }
-                },
-                onNextClick = {
-                    if (currentStep < 4) {
-                        currentStep++
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(currentStep)
-                        }
-                    } else {
-                        onSignUpComplete(signUpData.value)
-                    }
-                },
-                isDarkTheme = isDarkTheme,
-                modifier = Modifier.padding(16.dp)
-            )
+                }
+            }
         }
     }
 }
 
-
-
 fun getPageTitle(step: Int): String = when (step) {
-    0 -> "Contact Information"
-    1 -> "Identity Information"
-    2 -> "Disclosures"
-    3 -> "Documents"
-    4 -> "Trusted Contact"
+    1 -> "Contact Information"
+    2 -> "Identity Information"
+    3 -> "Disclosures"
+    4 -> "Documents"
+    5 -> "Trusted Contact"
     else -> ""
 }
 
 fun getPageDescription(step: Int): String = when (step) {
-    0 -> "Let's start with your contact details"
-    1 -> "Please provide your identity information"
-    2 -> "Review and agree to the disclosures"
-    3 -> "Upload required documents"
-    4 -> "Add a trusted contact"
+    1 -> "Let's start with your contact details"
+    2 -> "Please provide your identity information"
+    3 -> "Review and agree to the disclosures"
+    4 -> "Upload required documents"
+    5 -> "Add a trusted contact"
     else -> ""
 }
-
-// Data classes
-
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

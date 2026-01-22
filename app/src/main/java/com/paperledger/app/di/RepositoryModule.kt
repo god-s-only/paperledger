@@ -1,5 +1,6 @@
 package com.paperledger.app.di
 
+import com.paperledger.app.data.local.PaperLedgerSession
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.repository.AuthRepositoryImpl
 import com.paperledger.app.domain.repository.AuthRepository
@@ -17,7 +18,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(alpacaApi: AlpacaApiService): AuthRepository{
-        return AuthRepositoryImpl(alpacaApi)
+    fun provideAuthRepository(alpacaApi: AlpacaApiService, paperLedgerSession: PaperLedgerSession): AuthRepository{
+        return AuthRepositoryImpl(alpacaApi, paperLedgerSession)
     }
 }

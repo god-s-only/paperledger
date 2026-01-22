@@ -40,7 +40,7 @@ fun MainApp() {
     val navController = rememberNavController()
     NavHost(navController, startDestination = Routes.SIGN_UP){
         composable(Routes.SIGN_UP) {
-            SignUpScreen {  }
+            SignUpScreen(onSignUpComplete = {})
         }
     }
 }

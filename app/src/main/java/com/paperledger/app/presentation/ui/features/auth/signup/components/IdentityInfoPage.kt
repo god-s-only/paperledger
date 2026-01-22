@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,16 +16,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.paperledger.app.domain.models.account.IdentityData
-import com.paperledger.app.presentation.ui.features.auth.signup.InputField
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-
+import com.paperledger.app.presentation.ui.features.auth.signup.SignUpEvent
+import com.paperledger.app.presentation.ui.features.auth.signup.SignUpState
 
 @Composable
 fun IdentityInfoPage(
-    identityData: IdentityData,
-    onIdentityDataChange: (IdentityData) -> Unit,
+    state: SignUpState,
+    onEvent: (SignUpEvent) -> Unit,
     surfaceColor: Color,
     borderColor: Color,
     isDarkTheme: Boolean,
@@ -42,8 +44,11 @@ fun IdentityInfoPage(
         "cash"
     )
 ) {
+    val scrollState = rememberScrollState()
+
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.verticalScroll(scrollState)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -51,8 +56,8 @@ fun IdentityInfoPage(
         ) {
             InputField(
                 label = "First Name",
-                value = identityData.givenName,
-                onValueChange = { onIdentityDataChange(identityData.copy(givenName = it)) },
+                value = state.firstName,
+                onValueChange = { onEvent(SignUpEvent.OnFirstNameChange(it)) },
                 keyboardType = KeyboardType.Text,
                 placeholder = "First name",
                 surfaceColor = surfaceColor,
@@ -62,8 +67,8 @@ fun IdentityInfoPage(
             )
             InputField(
                 label = "Last Name",
-                value = identityData.familyName,
-                onValueChange = { onIdentityDataChange(identityData.copy(familyName = it)) },
+                value = state.lastName,
+                onValueChange = { onEvent(SignUpEvent.OnLastNameChange(it)) },
                 keyboardType = KeyboardType.Text,
                 placeholder = "Last name",
                 surfaceColor = surfaceColor,
@@ -74,74 +79,30 @@ fun IdentityInfoPage(
         }
         InputField(
             label = "Date of Birth",
-            value = identityData.dateOfBirth,
-            onValueChange = { onIdentityDataChange(identityData.copy(dateOfBirth = it)) },
+            value = state.dateOfBirth,
+            onValueChange = { onEvent(SignUpEvent.OnDateOfBirthChange(it)) },
             keyboardType = KeyboardType.Text,
             placeholder = "YYYY-MM-DD",
             surfaceColor = surfaceColor,
             borderColor = borderColor,
             isDarkTheme = isDarkTheme
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            InputField(
-                label = "Country of Citizenship",
-                value = identityData.countryOfCitizenship,
-                onValueChange = { onIdentityDataChange(identityData.copy(countryOfCitizenship = it)) },
-                keyboardType = KeyboardType.Text,
-                placeholder = "e.g., USA",
-                surfaceColor = surfaceColor,
-                borderColor = borderColor,
-                isDarkTheme = isDarkTheme,
-                modifier = Modifier.weight(1f)
-            )
-            InputField(
-                label = "Country of Birth",
-                value = identityData.countryOfBirth,
-                onValueChange = { onIdentityDataChange(identityData.copy(countryOfBirth = it)) },
-                keyboardType = KeyboardType.Text,
-                placeholder = "e.g., USA",
-                surfaceColor = surfaceColor,
-                borderColor = borderColor,
-                isDarkTheme = isDarkTheme,
-                modifier = Modifier.weight(1f)
-            )
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            InputField(
-                label = "Tax ID",
-                value = identityData.taxId,
-                onValueChange = { onIdentityDataChange(identityData.copy(taxId = it)) },
-                keyboardType = KeyboardType.Text,
-                placeholder = "Enter tax ID",
-                surfaceColor = surfaceColor,
-                borderColor = borderColor,
-                isDarkTheme = isDarkTheme,
-                modifier = Modifier.weight(1f)
-            )
-            InputField(
-                label = "Tax ID Type",
-                value = identityData.taxIdType,
-                onValueChange = { onIdentityDataChange(identityData.copy(taxIdType = it)) },
-                keyboardType = KeyboardType.Text,
-                placeholder = "e.g., USA_SSN",
-                surfaceColor = surfaceColor,
-                borderColor = borderColor,
-                isDarkTheme = isDarkTheme,
-                modifier = Modifier.weight(1f)
-            )
-        }
         InputField(
-            label = "Country of Tax Residence",
-            value = identityData.countryOfTaxResidence,
-            onValueChange = { onIdentityDataChange(identityData.copy(countryOfTaxResidence = it)) },
+            label = "Country Code",
+            value = state.countryCode,
+            onValueChange = { onEvent(SignUpEvent.OnCountryCodeChange(it)) },
             keyboardType = KeyboardType.Text,
-            placeholder = "e.g., USA",
+            placeholder = "e.g., US",
+            surfaceColor = surfaceColor,
+            borderColor = borderColor,
+            isDarkTheme = isDarkTheme
+        )
+        InputField(
+            label = "Tax ID",
+            value = state.taxId,
+            onValueChange = { onEvent(SignUpEvent.OnTaxIdChange(it)) },
+            keyboardType = KeyboardType.Text,
+            placeholder = "Enter tax ID",
             surfaceColor = surfaceColor,
             borderColor = borderColor,
             isDarkTheme = isDarkTheme
@@ -158,15 +119,15 @@ fun IdentityInfoPage(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Checkbox(
-                        checked = identityData.selectedFundingSources?.contains(source) == true,
+                        checked = state.fundingSource.contains(source),
                         onCheckedChange = { checked ->
-                            val currentSources = identityData.selectedFundingSources ?: emptyList()
+                            val currentSources = state.fundingSource
                             val newSources = if (checked) {
                                 currentSources + source
                             } else {
                                 currentSources - source
                             }
-                            onIdentityDataChange(identityData.copy(selectedFundingSources = newSources))
+                            onEvent(SignUpEvent.OnFundingSourcesChange(newSources))
                         }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -190,15 +151,15 @@ fun IdentityInfoPage(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Checkbox(
-                        checked = identityData.selectedAssets?.contains(asset) == true,
+                        checked = state.enabledAssets.contains(asset),
                         onCheckedChange = { checked ->
-                            val currentAssets = identityData.selectedAssets ?: emptyList()
+                            val currentAssets = state.enabledAssets
                             val newAssets = if (checked) {
                                 currentAssets + asset
                             } else {
                                 currentAssets - asset
                             }
-                            onIdentityDataChange(identityData.copy(selectedAssets = newAssets))
+                            onEvent(SignUpEvent.OnEnabledAssetsChange(newAssets))
                         }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -209,5 +170,8 @@ fun IdentityInfoPage(
                 }
             }
         }
+
+        // Add padding at bottom
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
