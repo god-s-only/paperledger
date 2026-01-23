@@ -83,10 +83,10 @@ fun TrustedContactPage(
             )
             InputField(
                 label = "Phone",
-                value = state.trustedContactPhone,
-                onValueChange = { onEvent(SignUpEvent.OnTrustedContactPhoneChange(it)) },
-                keyboardType = KeyboardType.Phone,
-                placeholder = "Contact phone number",
+                value = state.trustedContactEmail,
+                onValueChange = { onEvent(SignUpEvent.OnTrustedContactEmailChange(it)) },
+                keyboardType = KeyboardType.Text,
+                placeholder = "Contact email",
                 surfaceColor = surfaceColor,
                 borderColor = borderColor,
                 isDarkTheme = isDarkTheme,

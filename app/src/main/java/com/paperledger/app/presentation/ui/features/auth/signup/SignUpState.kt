@@ -41,7 +41,7 @@ data class SignUpState(
     // Trusted Contact Information
     val hasTrustedContact: Boolean = true,
     val trustedContactName: String = "",
-    val trustedContactPhone: String = "",
+    val trustedContactEmail: String = "",
 
     // Disclosure Information
     val isControlPerson: Boolean = false,

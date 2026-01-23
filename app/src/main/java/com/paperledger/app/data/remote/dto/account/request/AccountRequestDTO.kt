@@ -35,15 +35,15 @@ data class AccountRequestDTO(
     @SerializedName("minor_identity")
     val minorIdentity: Any? = null,
     @SerializedName("primary_account_holder_id")
-    val primaryAccountHolderId: Any,
+    val primaryAccountHolderId: Any? = null,
     @SerializedName("sub_correspondent")
-    val subCorrespondent: Any,
+    val subCorrespondent: Any? = null,
     @SerializedName("trading_configurations")
-    val tradingConfigurations: Any,
+    val tradingConfigurations: Any? = null,
     @SerializedName("trading_type")
-    val tradingType: Any,
+    val tradingType: Any? = null,
     @SerializedName("trusted_contact")
     val trustedContact: TrustedContact,
     @SerializedName("ultimate_beneficial_owners")
-    val ultimateBeneficialOwners: Any
+    val ultimateBeneficialOwners: Any? = null
 )

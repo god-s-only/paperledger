@@ -233,8 +233,8 @@ class SignUpViewModel @Inject constructor(
                 updateCanNavigateNext()
             }
 
-            is SignUpEvent.OnTrustedContactPhoneChange -> {
-                _state.value = _state.value.copy(trustedContactPhone = event.phone)
+            is SignUpEvent.OnTrustedContactEmailChange -> {
+                _state.value = _state.value.copy(trustedContactEmail = event.email)
                 updateCanNavigateNext()
             }
 

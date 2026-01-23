@@ -31,7 +31,7 @@ sealed class SignUpEvent {
     // Trusted Contact Information
     data class OnTrustedContactGivenChange(val hasTrustedContact: Boolean) : SignUpEvent()
     data class OnTrustedContactNameChange(val name: String) : SignUpEvent()
-    data class OnTrustedContactPhoneChange(val phone: String) : SignUpEvent()
+    data class OnTrustedContactEmailChange(val email: String) : SignUpEvent()
 
     // Disclosure Information
     data class OnIsControlPersonChange(val isControlPerson: Boolean) : SignUpEvent()
