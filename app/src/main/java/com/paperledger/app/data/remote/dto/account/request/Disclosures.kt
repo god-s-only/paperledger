@@ -8,8 +8,12 @@ data class Disclosures(
     val immediateFamilyExposed: Boolean,
     @SerializedName("is_affiliated_exchange_or_finra")
     val isAffiliatedExchangeOrFinra: Boolean,
+    @SerializedName("is_affiliated_exchange_or_iiroc")
+    val isAffiliatedExchangeOrIiroc: Boolean = false,
     @SerializedName("is_control_person")
     val isControlPerson: Boolean,
+    @SerializedName("is_discretionary")
+    val isDiscretionary: Any? = null,
     @SerializedName("is_politically_exposed")
     val isPoliticallyExposed: Boolean
 )

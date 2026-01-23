@@ -4,18 +4,46 @@ package com.paperledger.app.data.remote.dto.account.request
 import com.google.gson.annotations.SerializedName
 
 data class AccountRequestDTO(
+    @SerializedName("account_sub_type")
+    val accountSubType: Any? = null,
+    @SerializedName("account_type")
+    val accountType: String = "",
+    @SerializedName("additional_information")
+    val additionalInformation: String = "",
     @SerializedName("agreements")
     val agreements: List<Agreement>,
+    @SerializedName("authorized_individuals")
+    val authorizedIndividuals: Any? = null,
+    @SerializedName("auto_approve")
+    val autoApprove: Any? = null,
+    @SerializedName("beneficiaries")
+    val beneficiaries: Any? = null,
     @SerializedName("contact")
     val contact: Contact,
+    @SerializedName("currency")
+    val currency: Any? = null,
     @SerializedName("disclosures")
     val disclosures: Disclosures,
     @SerializedName("documents")
     val documents: List<Document>,
     @SerializedName("enabled_assets")
-    val enabledAssets: List<String>,
+    val enabledAssets: Any? = null,
+    @SerializedName("entity_id")
+    val entityId: Any? = null,
     @SerializedName("identity")
     val identity: Identity,
+    @SerializedName("minor_identity")
+    val minorIdentity: Any? = null,
+    @SerializedName("primary_account_holder_id")
+    val primaryAccountHolderId: Any,
+    @SerializedName("sub_correspondent")
+    val subCorrespondent: Any,
+    @SerializedName("trading_configurations")
+    val tradingConfigurations: Any,
+    @SerializedName("trading_type")
+    val tradingType: Any,
     @SerializedName("trusted_contact")
-    val trustedContact: TrustedContact
+    val trustedContact: TrustedContact,
+    @SerializedName("ultimate_beneficial_owners")
+    val ultimateBeneficialOwners: Any
 )

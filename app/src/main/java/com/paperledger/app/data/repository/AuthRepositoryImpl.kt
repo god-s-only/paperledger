@@ -3,7 +3,6 @@ package com.paperledger.app.data.repository
 import com.paperledger.app.core.AppError
 import com.paperledger.app.data.local.PaperLedgerSession
 import com.paperledger.app.data.remote.api.AlpacaApiService
-import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
 import com.paperledger.app.domain.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

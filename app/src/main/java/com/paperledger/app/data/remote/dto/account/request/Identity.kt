@@ -18,6 +18,8 @@ data class Identity(
     val fundingSource: List<String>,
     @SerializedName("given_name")
     val givenName: String,
+    @SerializedName("party_type")
+    val partyType: String = "",
     @SerializedName("tax_id")
     val taxId: String,
     @SerializedName("tax_id_type")

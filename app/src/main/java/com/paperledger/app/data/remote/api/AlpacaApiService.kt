@@ -1,6 +1,5 @@
 package com.paperledger.app.data.remote.api
 
-import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
 import com.paperledger.app.data.remote.dto.account.response.AccountResponseDTO
 import com.paperledger.app.data.remote.dto.assets.AssetsResponseDTO
 import retrofit2.Response

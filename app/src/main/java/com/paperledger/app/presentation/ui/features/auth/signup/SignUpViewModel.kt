@@ -328,7 +328,6 @@ class SignUpViewModel @Inject constructor(
             city = state.city,
             state = state.state,
             postalCode = state.postalCode,
-            unit = state.unit
         )
 
         val disclosures = Disclosures(
@@ -373,33 +372,13 @@ class SignUpViewModel @Inject constructor(
             trustedContact = trustedContact
         )
     }
-
-    private fun createTrustedContactFromState(state: SignUpState): TrustedContact {
-        return if (state.hasTrustedContact) {
-            TrustedContact(
-                givenName = state.trustedContactName,
-                familyName = "Doe",
-                emailAddress = state.email
-            )
-        } else {
-            TrustedContact(
-                givenName = "",
-                familyName = "",
-                emailAddress = ""
-            )
-        }
-    }
-
     private fun buildAgreementsList(state: SignUpState): List<Agreement> {
-        // Always include customer agreement for account creation
         val agreements = mutableListOf<Agreement>()
-
         agreements.add(
             Agreement(
                 agreement = "customer_agreement",
                 signedAt = getCurrentTimestamp(),
                 ipAddress = "127.0.0.1",
-                revision = ""
             )
         )
 
@@ -410,84 +389,6 @@ class SignUpViewModel @Inject constructor(
         val timestamp = Date().time
         return java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
             .format(Date(timestamp))
-    }
-
-    private fun createIdentityFromState(state: SignUpState): Identity {
-        return Identity(
-            givenName = state.firstName,
-            familyName = state.lastName,
-            dateOfBirth = state.dateOfBirth,
-            taxId = state.taxId.ifEmpty { "" },
-            taxIdType = "USA_SSN",
-            countryOfBirth = state.countryCode,
-            countryOfCitizenship = state.countryCode,
-            countryOfTaxResidence = state.countryCode,
-            fundingSource = state.fundingSource
-        )
-    }
-
-    private fun createContactFromState(state: SignUpState): Contact {
-        return Contact(
-            emailAddress = state.email,
-            phoneNumber = state.phoneNumber,
-            streetAddress = state.streetAddress.takeIf { it.isNotEmpty() } ?: emptyList(),
-            city = state.city,
-            state = state.state,
-            postalCode = state.postalCode,
-            unit = state.unit
-        )
-    }
-
-    private fun createEmptyContact(): Contact {
-        return Contact(
-            emailAddress = "",
-            phoneNumber = "",
-            streetAddress = emptyList(),
-            city = "",
-            state = "",
-            postalCode = "",
-            unit = ""
-        )
-    }
-
-    private fun createEmptyIdentity(): Identity {
-        return Identity(
-            givenName = "",
-            familyName = "",
-            dateOfBirth = "",
-            taxId = "",
-            taxIdType = "",
-            countryOfBirth = "",
-            countryOfCitizenship = "",
-            countryOfTaxResidence = "",
-            fundingSource = emptyList()
-        )
-    }
-
-    private fun createDefaultDisclosures(): Disclosures {
-        return Disclosures(
-            isControlPerson = false,
-            isAffiliatedExchangeOrFinra = false,
-            isPoliticallyExposed = false,
-            immediateFamilyExposed = false
-        )
-    }
-
-    private fun createDisclosuresFromState(state: SignUpState): Disclosures {
-        return Disclosures(
-            isControlPerson = state.isControlPerson,
-            isAffiliatedExchangeOrFinra = state.isAffiliatedExchange,
-            isPoliticallyExposed = state.isPoliticallyExposed,
-            immediateFamilyExposed = state.immediateFamilyExposed
-        )
-    }
-
-    private fun createEmptyTrustedContact(): TrustedContact {
-        return TrustedContact(
-            givenName = "",
-            familyName = "",
-            emailAddress = ""
-        )
     }
 
     private fun mapErrorMessage(error: Throwable): String {

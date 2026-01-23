@@ -15,7 +15,5 @@ data class Contact(
     @SerializedName("state")
     val state: String,
     @SerializedName("street_address")
-    val streetAddress: List<String>,
-    @SerializedName("unit")
-    val unit: String
+    val streetAddress: List<String>
 )
