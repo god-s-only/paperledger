@@ -115,10 +115,9 @@ fun DocumentsPage(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Upload section
         if (state.uploadedDocuments.isEmpty()) {
             Button(
-                onClick = { launcher.launch("*/*") },
+                onClick = { launcher.launch("image/*") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = TradingBlue

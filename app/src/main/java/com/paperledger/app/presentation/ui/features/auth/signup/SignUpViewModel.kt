@@ -102,9 +102,17 @@ class SignUpViewModel @Inject constructor(
 
             SignUpEvent.OnSubmitFromTrustedContactPage -> {
                 viewModelScope.launch {
-                    _state.value = _state.value.copy(isLoading = true, error = null)
-                    val completeRequest = buildCompleteAccountRequest(_state.value)
-                    signUp(completeRequest)
+                    if(isTrustedContactPageValid()){
+                        _state.value = _state.value.copy(isLoading = true, error = null)
+                        val completeRequest = buildCompleteAccountRequest(_state.value)
+                        signUp(completeRequest)
+                    }else{
+                        _state.update {
+                            it.copy(
+                                error = "Please fill in all required fields"
+                            )
+                        }
+                    }
                 }
             }
 
@@ -277,6 +285,11 @@ class SignUpViewModel @Inject constructor(
                 state.countryCode.isNotBlank() &&
                 state.fundingSource.isNotEmpty() &&
                 state.enabledAssets.isNotEmpty()
+    }
+
+    private fun isTrustedContactPageValid(): Boolean{
+        return _state.value.trustedContactEmail.isNotBlank() &&
+                _state.value.trustedContactName.isNotBlank()
     }
 
     private fun isContactPageValid(): Boolean {

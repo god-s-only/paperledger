@@ -64,11 +64,11 @@ fun NavigationButtons(
             ),
             modifier = Modifier.weight(1f, fill = false)
         ) {
-            Text(if (currentStep == totalSteps - 1) "Complete" else "Next")
+            Text(if (currentStep == totalSteps) "Complete" else "Next")
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 if (currentStep == totalSteps - 1) Icons.Default.CheckCircle else Icons.Default.ArrowForward,
-                contentDescription = if (currentStep == totalSteps - 1) "Complete" else "Next",
+                contentDescription = if (currentStep == totalSteps) "Complete" else "Next",
                 modifier = Modifier.size(18.dp)
             )
         }
