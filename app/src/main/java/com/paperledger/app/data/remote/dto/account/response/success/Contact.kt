@@ -1,4 +1,4 @@
-package com.paperledger.app.data.remote.dto.account.response
+package com.paperledger.app.data.remote.dto.account.response.success
 
 
 import com.google.gson.annotations.SerializedName

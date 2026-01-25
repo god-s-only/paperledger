@@ -1,8 +1,11 @@
 package com.paperledger.app.data.repository
 
+import com.google.gson.Gson
 import com.paperledger.app.core.AppError
 import com.paperledger.app.data.local.PaperLedgerSession
 import com.paperledger.app.data.remote.api.AlpacaApiService
+import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
+import com.paperledger.app.data.remote.dto.account.response.error.AccountResponseErrorDTO
 import com.paperledger.app.domain.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +22,8 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
                     val body = response.body() ?: return@withContext Result.failure(AppError.EmptyBody)
                     Result.success(body.id)
                 }else{
-                    Result.failure(AppError.HttpError(response.code()))
+                    val errorBody = Gson().fromJson(response.errorBody()?.string(), AccountResponseErrorDTO::class.java)
+                    Result.failure(AppError.HttpError(response.code(), errorBody.message))
                 }
             }catch (e: Exception){
                 Result.failure(mapError(e))
@@ -38,7 +42,7 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
                     val body = res.body() ?: return@withContext Result.failure(AppError.EmptyBody)
                     Result.success(Unit)
                 }else{
-                    Result.failure(AppError.HttpError(res.code()))
+                    Result.failure(AppError.HttpError(res.code(), res.message()))
                 }
             }catch (e: Exception){
                 Result.failure(mapError(e))
@@ -62,7 +66,7 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
     private fun mapError(e: Exception): AppError{
         return when(e){
             is IOException -> AppError.NetworkUnavailable
-            is HttpException -> AppError.HttpError(e.code())
+            is HttpException -> AppError.HttpError(e.code(), e.message)
             else -> AppError.Unknown(e.message)
         }
     }

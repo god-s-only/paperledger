@@ -395,9 +395,9 @@ class SignUpViewModel @Inject constructor(
         return when (error) {
             is AppError.HttpError -> {
                 when (error.code) {
-                    400 -> "Bad Request"
-                    409 -> "Account already exists"
-                    422 -> "Invalid Input"
+                    400 -> "Bad Request: ${error.reason}"
+                    409 -> "Account already exists: ${error.reason}"
+                    422 -> "Invalid Input ${error.reason}"
                     else -> error.message ?: "Unknown Error"
                 }
             }
