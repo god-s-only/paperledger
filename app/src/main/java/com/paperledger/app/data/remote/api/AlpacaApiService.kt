@@ -2,6 +2,8 @@ package com.paperledger.app.data.remote.api
 
 import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
 import com.paperledger.app.data.remote.dto.account.response.success.AccountResponseDTO
+import com.paperledger.app.data.remote.dto.ach.request.ACHRelationshipsRequestDTO
+import com.paperledger.app.data.remote.dto.ach.response.success.ACHRelationshipResponseDTO
 import com.paperledger.app.data.remote.dto.assets.AssetsResponseDTO
 import retrofit2.Response
 import retrofit2.http.Body
@@ -29,4 +31,10 @@ interface AlpacaApiService {
         @Path("account_id") accountId: String,
         @Body accountRequest: AccountRequestDTO
     ): Response<AccountResponseDTO>
+
+    @POST("/v1/accounts/{account_id}/ach_relationships")
+    suspend fun createACHRelationship(
+        @Path("account_id") accountId: String,
+        @Body achRelationshipRequest: ACHRelationshipsRequestDTO
+    ): Response<ACHRelationshipResponseDTO>
 }

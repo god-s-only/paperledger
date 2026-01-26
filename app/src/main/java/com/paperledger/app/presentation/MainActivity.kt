@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.paperledger.app.core.Routes
 import com.paperledger.app.presentation.theme.PaperLedgerTheme
+import com.paperledger.app.presentation.ui.features.ach_relationships.ACHRelationShipScreen
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -40,7 +41,10 @@ fun MainApp() {
     val navController = rememberNavController()
     NavHost(navController, startDestination = Routes.SIGN_UP){
         composable(Routes.SIGN_UP) {
-            SignUpScreen(onSignUpComplete = {})
+            SignUpScreen(navController = navController)
+        }
+        composable(Routes.ACH_RELATIONSHIP_SCREEN) {
+            ACHRelationShipScreen()
         }
     }
 }

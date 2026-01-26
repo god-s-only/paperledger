@@ -45,7 +45,7 @@ class SignUpViewModel @Inject constructor(
                     )
                     storeUserIdUseCase(accountId)
                     Log.d("AccountID", accountId)
-                    sendUIEvent(UIEvent.Navigate(Routes.FUNDING_SCREEN))
+                    sendUIEvent(UIEvent.Navigate(Routes.ACH_RELATIONSHIP_SCREEN))
                 },
                 onFailure = { error ->
                     _state.update { it.copy(isLoading = false, error = mapErrorMessage(error)) }

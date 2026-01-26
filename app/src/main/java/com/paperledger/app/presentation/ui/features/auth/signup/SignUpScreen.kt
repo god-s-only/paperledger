@@ -47,6 +47,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import android.graphics.BitmapFactory
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.paperledger.app.core.UIEvent
 import com.paperledger.app.domain.models.account.ContactData
 import com.paperledger.app.domain.models.account.DisclosuresData
 import com.paperledger.app.domain.models.account.DocumentsData
@@ -74,8 +77,7 @@ import java.util.Base64
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
-    onSignUpComplete: () -> Unit = {},
-    onNavigateBack: () -> Unit = {},
+    navController: NavController,
     viewModel: SignUpViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -83,6 +85,22 @@ fun SignUpScreen(
     val borderColor = if (isDarkTheme) DarkBorder else LightBorder
     val surfaceColor = if (isDarkTheme) DarkSurface else LightSurface
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when(event){
+                is UIEvent.Navigate -> {
+                    navController.navigate(event.route)
+                }
+                is UIEvent.PopBackStack -> {
+
+                }
+                is UIEvent.ShowSnackBar -> {
+
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -273,5 +291,5 @@ fun getPageDescription(step: Int): String = when (step) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun DefaultPreview() {
-    SignUpScreen()
+    SignUpScreen(navController = rememberNavController())
 }
