@@ -1,10 +1,12 @@
 package com.paperledger.app.presentation.ui.features.auth.signup.components
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -36,17 +39,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import com.paperledger.app.presentation.theme.TradingBlue
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpEvent
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpState
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.util.Base64
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -61,19 +64,69 @@ fun DocumentsPage(
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("") }
+    var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // File picker using activity result API (for images/pdfs, etc.)
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    // Create a temporary file for camera capture
+    val photoFile = remember {
+        File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg").apply {
+            createNewFile()
+        }
+    }
+
+    val photoUri = remember {
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            photoFile
+        )
+    }
+
+    // Function to convert image to Base64
+    fun convertImageToBase64(uri: Uri): String? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+
+            // Compress bitmap to JPEG format
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
+            val byteArray = outputStream.toByteArray()
+
+            // Encode to Base64
+            Base64.getEncoder().encodeToString(byteArray)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    // Gallery picker launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
         if (uri != null) {
             isLoading = true
-            val inputStream = context.contentResolver.openInputStream(uri)
-            inputStream?.use {
-                val byteArray = it.readBytes()
-                // Encode to Base64
-                val base64Content = Base64.getEncoder().encodeToString(byteArray)
-                // Store the content as document
+            val base64Content = convertImageToBase64(uri)
+            if (base64Content != null) {
                 onEvent(SignUpEvent.OnDocumentUploaded(base64Content))
-                fileName = uri.lastPathSegment ?: "Document"
+                fileName = uri.lastPathSegment ?: "Gallery Image"
+            }
+            isLoading = false
+        }
+    }
+
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            isLoading = true
+            val base64Content = convertImageToBase64(photoUri)
+            if (base64Content != null) {
+                onEvent(SignUpEvent.OnDocumentUploaded(base64Content))
+                fileName = "Camera Capture"
+                capturedImageUri = photoUri
             }
             isLoading = false
         }
@@ -106,7 +159,7 @@ fun DocumentsPage(
                     color = if (isDarkTheme) Color.White else Color.Black
                 )
                 Text(
-                    text = "Please upload a valid government-issued ID (e.g. photo, PDF, etc.)",
+                    text = "Please upload a valid government-issued ID (take a photo or select from gallery)",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -116,20 +169,40 @@ fun DocumentsPage(
         Spacer(modifier = Modifier.height(12.dp))
 
         if (state.uploadedDocuments.isEmpty()) {
+            // Camera Button
             Button(
-                onClick = { launcher.launch("image/*") },
+                onClick = { cameraLauncher.launch(photoUri) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = TradingBlue
                 )
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Upload",
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Take Photo",
                     modifier = Modifier.size(18.dp)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Choose File")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Take Photo")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Gallery Button
+            Button(
+                onClick = { galleryLauncher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TradingBlue.copy(alpha = 0.8f)
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Choose from Gallery",
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Choose from Gallery")
             }
         } else {
             Card(
@@ -163,6 +236,8 @@ fun DocumentsPage(
                         onClick = {
                             state.uploadedDocuments.firstOrNull()?.let { docId ->
                                 onEvent(SignUpEvent.OnDocumentRemoved(docId))
+                                fileName = ""
+                                capturedImageUri = null
                             }
                         }
                     ) {
@@ -176,7 +251,6 @@ fun DocumentsPage(
             }
         }
 
-        // Add padding at bottom
         Spacer(modifier = Modifier.height(100.dp))
     }
 }

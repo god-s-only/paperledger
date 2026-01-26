@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.AppError
+import com.paperledger.app.core.Routes
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.data.remote.dto.account.request.*
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
@@ -44,6 +45,7 @@ class SignUpViewModel @Inject constructor(
                     )
                     storeUserIdUseCase(accountId)
                     Log.d("AccountID", accountId)
+                    sendUIEvent(UIEvent.Navigate(Routes.FUNDING_SCREEN))
                 },
                 onFailure = { error ->
                     _state.update { it.copy(isLoading = false, error = mapErrorMessage(error)) }
