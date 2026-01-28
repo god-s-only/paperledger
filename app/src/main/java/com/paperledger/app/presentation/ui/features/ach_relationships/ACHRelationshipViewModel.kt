@@ -54,6 +54,7 @@ class ACHRelationshipViewModel @Inject constructor(private val createACHRelation
                                 isLoading = false
                             )
                         }
+                        sendUIEvent(UIEvent.ShowSnackBar(message = "Failed to create ACH Relationship"))
                     }
                 )
         }

@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-    NavHost(navController, startDestination = Routes.SIGN_UP){
+    NavHost(navController, startDestination = Routes.ACH_RELATIONSHIP_SCREEN){
         composable(Routes.SIGN_UP) {
             SignUpScreen(navController = navController)
         }
