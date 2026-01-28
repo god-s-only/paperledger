@@ -1,6 +1,8 @@
 package com.paperledger.app.data.repository
 
 import android.app.Service
+import com.paperledger.app.core.AppError
+import com.paperledger.app.core.mapError
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.ach.request.ACHRelationshipsRequestDTO
 import com.paperledger.app.domain.repository.ACHRelationshipRepository
@@ -17,13 +19,13 @@ class ACHRelationshipRepositoryImpl @Inject constructor(private val alpacaAPISer
             try {
                 val res = alpacaAPIService.createACHRelationship(accountId, request)
                 if (res.isSuccessful) {
-                    val body = res.body() ?: return@withContext Result.failure(Exception("Empty body"))
+                    val body = res.body() ?: return@withContext Result.failure(AppError.EmptyBody)
                     Result.success(Unit)
                 } else {
-                    Result.failure(Exception("Failed to create ACH relationship"))
+                    Result.failure(AppError.HttpError(res.code(), res.message()))
                 }
             } catch (e: Exception) {
-                Result.failure(e)
+                Result.failure(mapError(e))
             }
 
         }

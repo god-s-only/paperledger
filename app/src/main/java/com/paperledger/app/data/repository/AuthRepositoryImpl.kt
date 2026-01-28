@@ -2,6 +2,7 @@ package com.paperledger.app.data.repository
 
 import com.google.gson.Gson
 import com.paperledger.app.core.AppError
+import com.paperledger.app.core.mapError
 import com.paperledger.app.data.local.PaperLedgerSession
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
@@ -61,13 +62,5 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
 
     override suspend fun getUserId(): String? {
         return paperLedgerSession.getUserId()
-    }
-
-    private fun mapError(e: Exception): AppError{
-        return when(e){
-            is IOException -> AppError.NetworkUnavailable
-            is HttpException -> AppError.HttpError(e.code(), e.message)
-            else -> AppError.Unknown(e.message)
-        }
     }
 }

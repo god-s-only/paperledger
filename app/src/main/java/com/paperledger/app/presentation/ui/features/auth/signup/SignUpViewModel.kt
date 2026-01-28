@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.AppError
 import com.paperledger.app.core.Routes
 import com.paperledger.app.core.UIEvent
+import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.data.remote.dto.account.request.*
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.auth.SignUpUseCase
@@ -404,22 +405,5 @@ class SignUpViewModel @Inject constructor(
         val timestamp = Date().time
         return java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
             .format(Date(timestamp))
-    }
-
-    private fun mapErrorMessage(error: Throwable): String {
-        return when (error) {
-            is AppError.HttpError -> {
-                when (error.code) {
-                    400 -> "Bad Request: ${error.reason}"
-                    409 -> "Account already exists: ${error.reason}"
-                    422 -> "Invalid Input ${error.reason}"
-                    else -> error.message ?: "Unknown Error"
-                }
-            }
-            is AppError.Unknown -> error.message ?: "An unknown error occurred"
-            is AppError.EmptyBody -> "Response body is empty"
-            is AppError.NetworkUnavailable -> "Network unavailable. Please check your connection"
-            else -> error.message ?: "An error occurred"
-        }
     }
 }
