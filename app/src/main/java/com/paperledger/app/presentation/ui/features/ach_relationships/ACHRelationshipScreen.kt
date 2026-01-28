@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,10 +55,14 @@ fun ACHRelationShipScreen(
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is UIEvent.ShowSnackBar -> {
-                    snackbarHostState.showSnackbar(
+                    val result = snackbarHostState.showSnackbar(
                         message = event.message,
-                        duration = SnackbarDuration.Short
+                        duration = SnackbarDuration.Short,
+                        actionLabel = event.action
                     )
+                    if(result == SnackbarResult.ActionPerformed){
+                        viewModel.onEvent(ACHRelationshipEvent.OnSubmit)
+                    }
                 }
                 is UIEvent.Navigate -> {
                 }

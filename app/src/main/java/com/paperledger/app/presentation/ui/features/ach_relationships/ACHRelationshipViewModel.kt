@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.Routes
 import com.paperledger.app.core.UIEvent
+import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.data.remote.dto.ach.request.ACHRelationshipsRequestDTO
 import com.paperledger.app.domain.usecase.ach.CreateACHRelationshipUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
@@ -48,13 +49,13 @@ class ACHRelationshipViewModel @Inject constructor(private val createACHRelation
                         sendUIEvent(UIEvent.ShowSnackBar(message = "ACH Relationship Created"))
                         sendUIEvent(UIEvent.Navigate(Routes.FUNDING_SCREEN))
                     },
-                    onFailure = {
+                    onFailure = { e ->
                         _state.update {
                             it.copy(
                                 isLoading = false
                             )
                         }
-                        sendUIEvent(UIEvent.ShowSnackBar(message = "Failed to create ACH Relationship"))
+                        sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e), action = "Retry"))
                     }
                 )
         }

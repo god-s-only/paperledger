@@ -1,10 +1,12 @@
 package com.paperledger.app.data.repository
 
 import android.app.Service
+import com.google.gson.Gson
 import com.paperledger.app.core.AppError
 import com.paperledger.app.core.mapError
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.ach.request.ACHRelationshipsRequestDTO
+import com.paperledger.app.data.remote.dto.ach.response.error.ACHRelationshipResponseErrorDTO
 import com.paperledger.app.domain.repository.ACHRelationshipRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,7 +24,8 @@ class ACHRelationshipRepositoryImpl @Inject constructor(private val alpacaAPISer
                     val body = res.body() ?: return@withContext Result.failure(AppError.EmptyBody)
                     Result.success(Unit)
                 } else {
-                    Result.failure(AppError.HttpError(res.code(), res.message()))
+                    val errorBody = Gson().fromJson(res.errorBody()?.string(),ACHRelationshipResponseErrorDTO::class.java)
+                    Result.failure(AppError.HttpError(res.code(), errorBody.message))
                 }
             } catch (e: Exception) {
                 Result.failure(mapError(e))
