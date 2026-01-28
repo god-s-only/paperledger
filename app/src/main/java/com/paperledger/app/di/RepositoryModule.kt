@@ -26,7 +26,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideACHRelationshipRepository(alpacaApi: AlpacaApiService): ACHRelationshipRepository{
-        return ACHRelationshipRepositoryImpl(alpacaApi)
+    fun provideACHRelationshipRepository(alpacaApi: AlpacaApiService, paperLedgerSession: PaperLedgerSession): ACHRelationshipRepository{
+        return ACHRelationshipRepositoryImpl(alpacaApi, paperLedgerSession)
     }
 }

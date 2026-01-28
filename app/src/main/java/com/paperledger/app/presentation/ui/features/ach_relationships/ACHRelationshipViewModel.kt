@@ -7,6 +7,7 @@ import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.data.remote.dto.ach.request.ACHRelationshipsRequestDTO
 import com.paperledger.app.domain.usecase.ach.CreateACHRelationshipUseCase
+import com.paperledger.app.domain.usecase.ach.StoreACHRelationshipTokenUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -18,7 +19,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ACHRelationshipViewModel @Inject constructor(private val createACHRelationshipUseCase: CreateACHRelationshipUseCase, private val getUserIdUseCase: GetUserIdUseCase): ViewModel() {
+class ACHRelationshipViewModel @Inject constructor(
+    private val createACHRelationshipUseCase: CreateACHRelationshipUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
+    private val storeACHRelationshipTokenUseCase: StoreACHRelationshipTokenUseCase): ViewModel() {
     private val _state = MutableStateFlow(ACHRelationshipState())
     val state = _state.asStateFlow()
 
@@ -46,6 +50,7 @@ class ACHRelationshipViewModel @Inject constructor(private val createACHRelation
                                 isLoading = false
                             )
                         }
+                        storeACHRelationshipTokenUseCase.invoke("ach_relationship_token")
                         sendUIEvent(UIEvent.ShowSnackBar(message = "ACH Relationship Created"))
                         sendUIEvent(UIEvent.Navigate(Routes.FUNDING_SCREEN))
                     },

@@ -4,4 +4,5 @@ import com.paperledger.app.data.remote.dto.ach.request.ACHRelationshipsRequestDT
 
 interface ACHRelationshipRepository {
     suspend fun createACHRelationship(request: ACHRelationshipsRequestDTO, accountId: String): Result<Unit>
+    suspend fun storeACHRelationshipToken(token: String): Result<Unit>
 }
