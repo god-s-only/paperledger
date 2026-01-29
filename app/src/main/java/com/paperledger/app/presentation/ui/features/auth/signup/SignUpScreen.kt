@@ -50,12 +50,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.paperledger.app.core.UIEvent
-import com.paperledger.app.domain.models.account.ContactData
-import com.paperledger.app.domain.models.account.DisclosuresData
-import com.paperledger.app.domain.models.account.DocumentsData
-import com.paperledger.app.domain.models.account.IdentityData
-import com.paperledger.app.domain.models.account.SignUpData
-import com.paperledger.app.domain.models.account.TrustedContactData
 import com.paperledger.app.presentation.theme.DarkBorder
 import com.paperledger.app.presentation.theme.DarkSurface
 import com.paperledger.app.presentation.theme.LightBorder
