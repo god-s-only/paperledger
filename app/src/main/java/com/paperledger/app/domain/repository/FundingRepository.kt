@@ -3,5 +3,5 @@ package com.paperledger.app.domain.repository
 import com.paperledger.app.data.remote.dto.funding.request.FundingRequestDTO
 
 interface FundingRepository {
-    suspend fun requestFunding(request: FundingRequestDTO): Result<Unit>
+    suspend fun requestFunding(request: FundingRequestDTO, accountId: String): Result<Unit>
 }
