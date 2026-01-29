@@ -43,4 +43,20 @@ class ACHRelationshipRepositoryImpl @Inject constructor(private val alpacaAPISer
             Result.failure(e)
         }
     }
+
+    override suspend fun getACHRelationshipId(accountId: String): Result<String> {
+        return withContext(Dispatchers.IO){
+            try {
+                val res = alpacaAPIService.getACHRelationship(accountId)
+                if(res.isSuccessful){
+                    val body = res.body() ?: return@withContext Result.failure(AppError.EmptyBody)
+                    Result.success(body.first().id)
+                }else{
+                    Result.failure(AppError.HttpError(res.code(), res.message()))
+                }
+            }catch (e: Exception){
+                Result.failure(mapError(e))
+            }
+        }
+    }
 }

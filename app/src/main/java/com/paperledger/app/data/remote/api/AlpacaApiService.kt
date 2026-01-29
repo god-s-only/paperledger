@@ -4,6 +4,7 @@ import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
 import com.paperledger.app.data.remote.dto.account.response.success.AccountResponseDTO
 import com.paperledger.app.data.remote.dto.ach.request.ACHRelationshipsRequestDTO
 import com.paperledger.app.data.remote.dto.ach.response.success.ACHRelationshipResponseDTO
+import com.paperledger.app.data.remote.dto.ach_get.GetACHRelationshipsDTO
 import com.paperledger.app.data.remote.dto.assets.AssetsResponseDTO
 import com.paperledger.app.data.remote.dto.funding.request.FundingRequestDTO
 import com.paperledger.app.data.remote.dto.funding.response.success.FundingResponseDTO
@@ -45,4 +46,9 @@ interface AlpacaApiService {
         @Path("account_id") accountId: String,
         @Body fundingRequestDTO: FundingRequestDTO
     ): Response<FundingResponseDTO>
+
+    @GET("/v1/accounts/{account_id}/ach_relationships")
+    suspend fun getACHRelationship(
+        @Path("account_id") accountId: String
+    ): Response<GetACHRelationshipsDTO>
 }
