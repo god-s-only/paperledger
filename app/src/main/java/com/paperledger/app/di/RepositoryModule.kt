@@ -4,8 +4,10 @@ import com.paperledger.app.data.local.PaperLedgerSession
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.repository.ACHRelationshipRepositoryImpl
 import com.paperledger.app.data.repository.AuthRepositoryImpl
+import com.paperledger.app.data.repository.FundingRepositoryImpl
 import com.paperledger.app.domain.repository.ACHRelationshipRepository
 import com.paperledger.app.domain.repository.AuthRepository
+import com.paperledger.app.domain.repository.FundingRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -28,5 +30,11 @@ object RepositoryModule {
     @Singleton
     fun provideACHRelationshipRepository(alpacaApi: AlpacaApiService, paperLedgerSession: PaperLedgerSession): ACHRelationshipRepository{
         return ACHRelationshipRepositoryImpl(alpacaApi, paperLedgerSession)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFundingRepository(alpacaApi: AlpacaApiService): FundingRepository {
+        return FundingRepositoryImpl(alpacaApi)
     }
 }
