@@ -24,10 +24,7 @@ val DARK_GREY = Color(0xFF1E222D)
 
 @Composable
 fun AssetsScreen() {
-    // Local state for searching/filtering
     var searchQuery by remember { mutableStateOf("") }
-
-    // Mock data based on your JSON
     val assets = remember { assetDataJson }
 
     Column(
@@ -35,7 +32,6 @@ fun AssetsScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // --- Header Section ---
         Text(
             text = "MARKET WATCH",
             modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
@@ -44,7 +40,6 @@ fun AssetsScreen() {
             fontWeight = FontWeight.Bold
         )
 
-        // --- Search Bar ---
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -142,7 +137,6 @@ fun StatusBadge(status: String) {
     }
 }
 
-// Data model for the UI
 data class AssetInfo(
     val symbol: String,
     val name: String,

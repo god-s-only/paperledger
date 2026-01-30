@@ -21,7 +21,8 @@ interface AlpacaApiService {
     @GET("/v1/assets")
     suspend fun getAllAssets(
         @Query("status") status: String = "all",
-        @Query("asset_class") assetClass: String = "us_equity"
+        @Query("asset_class") assetClass: String = "us_equity",
+        @Query("attributes") attributes: String = "ptp_no_exception,ipo"
     ): Response<AssetsResponseDTO>
 
     @POST("/v1/accounts")

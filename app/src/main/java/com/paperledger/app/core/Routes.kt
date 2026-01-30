@@ -6,5 +6,6 @@ object Routes {
     const val HOME = "home"
     const val FUNDING_SCREEN = "funding_screen"
     const val ACH_RELATIONSHIP_SCREEN = "ach_relationship_screen"
+    const val ASSETS_SCREEN = "assets_screen"
 
 }
