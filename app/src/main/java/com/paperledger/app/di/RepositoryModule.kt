@@ -6,10 +6,12 @@ import com.paperledger.app.data.repository.ACHRelationshipRepositoryImpl
 import com.paperledger.app.data.repository.AssetsRepositoryImpl
 import com.paperledger.app.data.repository.AuthRepositoryImpl
 import com.paperledger.app.data.repository.FundingRepositoryImpl
+import com.paperledger.app.data.repository.WatchlistsRepositoryImpl
 import com.paperledger.app.domain.repository.ACHRelationshipRepository
 import com.paperledger.app.domain.repository.AssetsRepository
 import com.paperledger.app.domain.repository.AuthRepository
 import com.paperledger.app.domain.repository.FundingRepository
+import com.paperledger.app.domain.repository.WatchlistsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -44,5 +46,11 @@ object RepositoryModule {
     @Singleton
     fun provideAssetsRepository(alpacaApi: AlpacaApiService): AssetsRepository {
         return AssetsRepositoryImpl(alpacaApi)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWatchlistsRepository(alpacaApi: AlpacaApiService): WatchlistsRepository {
+        return WatchlistsRepositoryImpl(alpacaApi)
     }
 }
