@@ -16,6 +16,7 @@ import com.paperledger.app.core.Routes
 import com.paperledger.app.presentation.theme.PaperLedgerTheme
 import com.paperledger.app.presentation.ui.features.ach_relationships.ACHRelationShipScreen
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
+import com.paperledger.app.presentation.ui.features.funding.FundingScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -39,12 +40,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-    NavHost(navController, startDestination = Routes.ACH_RELATIONSHIP_SCREEN){
+    NavHost(navController, startDestination = Routes.FUNDING_SCREEN){
         composable(Routes.SIGN_UP) {
             SignUpScreen(navController = navController)
         }
         composable(Routes.ACH_RELATIONSHIP_SCREEN) {
             ACHRelationShipScreen()
+        }
+        composable(Routes.FUNDING_SCREEN) {
+            FundingScreen(navController = navController)
         }
     }
 }

@@ -64,12 +64,6 @@ class FundingScreenViewModel @Inject constructor(
     }
     fun requestTransfer(){
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoading = true,
-                    error = null
-                )
-            }
             if(_state.value.amount.isBlank()){
                 _state.update {
                     it.copy(
@@ -82,6 +76,12 @@ class FundingScreenViewModel @Inject constructor(
                     error = "There is no relationship ID, kindly refresh"
                 )
             }else{
+                _state.update {
+                    it.copy(
+                        isLoading = true,
+                        error = null
+                    )
+                }
                 requestTransferUseCase.invoke(FundingRequestDTO(
                     amount = _state.value.amount,
                     direction = _state.value.direction,
@@ -96,6 +96,7 @@ class FundingScreenViewModel @Inject constructor(
                                 error = null
                             )
                         }
+                        sendUIEvent(UIEvent.ShowSnackBar(message = "Transfer ongoing, balance will reflect in 10 minutes"))
                         sendUIEvent(UIEvent.Navigate(Routes.HOME))
                     },
                     onFailure = { e ->
@@ -105,6 +106,7 @@ class FundingScreenViewModel @Inject constructor(
                                 error = mapErrorMessage(e)
                             )
                         }
+                        sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error ?: ""))
                     }
                 )
             }
