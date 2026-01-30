@@ -14,23 +14,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.paperledger.app.core.UIEvent
 import com.paperledger.app.presentation.ui.features.ach_relationships.MT5InputField
 
 val MT5_BLUE = Color(0xFF2196F3)
 
 @Composable
 fun FundingScreen(
-    initialDirection: String = "INCOMING",
-    initialRelationshipId: String = "2607a7b8-cf50-4c9c-a107-19475e162ae6",
-    onConfirm: (amount: String, relationshipId: String) -> Unit,
-    modifier: Modifier = Modifier
+    viewModel: FundingScreenViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier,
+    navController: NavController
 ) {
-    // Internal State Management
-    var amount by remember { mutableStateOf("1234.56") }
-    var relationshipId by remember { mutableStateOf(initialRelationshipId) }
-    var transferType by remember { mutableStateOf("ach") }
-    var direction by remember { mutableStateOf(initialDirection) }
-    var isLoading by remember { mutableStateOf(false) }
+    val state = viewModel.state.collectAsState()
+
+    LaunchedEffect(key1= true) {
+        viewModel.uiEvent.collect { result ->
+            when(result){
+                is UIEvent.Navigate -> {
+                    navController.navigate(result.route)
+                }
+                is UIEvent.PopBackStack -> {
+
+                }
+                is UIEvent.ShowSnackBar -> {
+
+                }
+            }
+        }
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -41,7 +55,7 @@ fun FundingScreen(
         Box(modifier = modifier
             .fillMaxSize()
             .padding(paddingValues)) {
-            if (isLoading) {
+            if (state.value.isLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -56,24 +70,24 @@ fun FundingScreen(
                     .fillMaxSize()
                     .padding(20.dp)
                     .verticalScroll(rememberScrollState())
-                    .alpha(if (isLoading) 0.6f else 1f),
+                    .alpha(if (state.value.isLoading) 0.6f else 1f),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 // Header
-                FundingHeader(direction = direction)
+                FundingHeader(direction = state.value.direction)
 
                 // Transfer Method (Locked)
                 MT5InputField(
-                    value = transferType.uppercase(),
-                    onValueChange = { transferType = it },
+                    value = state.value.transferType.uppercase(),
+                    onValueChange = {  },
                     label = "Transfer Method",
                     enabled = false
                 )
 
                 // Relationship ID Input
                 MT5InputField(
-                    value = relationshipId,
-                    onValueChange = { relationshipId = it },
+                    value = state.value.relationshipId,
+                    onValueChange = { },
                     label = "Relationship ID",
                     placeholder = "Enter Relationship UUID",
                     enabled = false
@@ -81,13 +95,13 @@ fun FundingScreen(
 
                 // Large Amount Input
                 OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it },
+                    value = state.value.amount,
+                    onValueChange = { viewModel.onEvent(FundingScreenEvent.OnAmountChange(amount = it)) },
                     label = { Text("Amount") },
                     prefix = { Text("$", color = MT5_BLUE, fontWeight = FontWeight.Bold) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    enabled = !isLoading,
+                    enabled = !state.value.isLoading,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MT5_BLUE,
                         focusedLabelColor = MT5_BLUE,
@@ -104,26 +118,26 @@ fun FundingScreen(
                 // Action Button
                 Button(
                     onClick = {
-                        onConfirm(amount, relationshipId)
+                        viewModel.onEvent(FundingScreenEvent.OnSubmit)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = !isLoading,
+                    enabled = !state.value.isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MT5_BLUE,
                         disabledContainerColor = MT5_BLUE.copy(alpha = 0.5f)
                     ),
                     shape = RoundedCornerShape(4.dp)
                 ) {
-                    if (isLoading) {
+                    if (state.value.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             color = Color.White,
                             strokeWidth = 2.dp
                         )
                     } else {
-                        val isIncoming = direction.equals("INCOMING", ignoreCase = true)
+                        val isIncoming = state.value.direction.equals("INCOMING", ignoreCase = true)
                         Text(
                             text = if (isIncoming) "CONFIRM DEPOSIT" else "CONFIRM WITHDRAWAL",
                             fontWeight = FontWeight.ExtraBold,
@@ -157,5 +171,5 @@ fun FundingHeader(direction: String) {
 @Preview
 @Composable
 private fun DefaultPreview() {
-    FundingScreen(onConfirm = {_,_ ->})
+    FundingScreen(navController = rememberNavController())
 }
