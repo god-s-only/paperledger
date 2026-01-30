@@ -18,15 +18,36 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.paperledger.app.core.UIEvent
+import com.paperledger.app.domain.models.assets.AssetsModel
 
 val MT5_BLUE = Color(0xFF2196F3)
 val DARK_GREY = Color(0xFF1E222D)
 
 @Composable
-fun AssetsScreen() {
-    var searchQuery by remember { mutableStateOf("") }
-    val assets = remember { assetDataJson }
+fun AssetsScreen(
+    viewModel: AssetsViewModel = hiltViewModel(),
+    navController: NavController
+) {
+    val state = viewModel.state.collectAsState()
+    LaunchedEffect(true) {
+        viewModel.uiEvent.collect { event ->
+            when(event){
+                is UIEvent.Navigate -> {
 
+                }
+                is UIEvent.PopBackStack -> {
+
+                }
+                is UIEvent.ShowSnackBar -> {
+
+                }
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,8 +62,8 @@ fun AssetsScreen() {
         )
 
         OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+            value = state.value.searchQuery,
+            onValueChange = { viewModel.onEvent(AssetsScreenEvent.OnSearchQueryChange(it)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -58,12 +79,11 @@ fun AssetsScreen() {
 
         Divider(modifier = Modifier.padding(top = 8.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
-        // --- Assets List ---
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            items(assets.filter { it.symbol.contains(searchQuery, ignoreCase = true) }) { asset ->
+            items(state.value.assets.filter { it.symbol.contains(state.value.searchQuery, ignoreCase = true) }) { asset ->
                 AssetRow(asset)
                 Divider(
                     thickness = 0.5.dp,
@@ -76,7 +96,7 @@ fun AssetsScreen() {
 }
 
 @Composable
-fun AssetRow(asset: AssetInfo) {
+fun AssetRow(asset: AssetsModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -137,24 +157,8 @@ fun StatusBadge(status: String) {
     }
 }
 
-data class AssetInfo(
-    val symbol: String,
-    val name: String,
-    val exchange: String,
-    val status: String,
-    val assetClass: String
-)
-
-// Simplified list for the example
-val assetDataJson = listOf(
-    AssetInfo("292RGT016", "Empire Petroleum Corp. Rights", "NASDAQ", "inactive", "us_equity"),
-    AssetInfo("IGGHY", "IG Group Holdings Plc", "OTC", "inactive", "us_equity"),
-    AssetInfo("BCNA", "", "NASDAQ", "inactive", "us_equity"),
-    AssetInfo("LVUS", "Hartford Multifactor Low Volatility", "BATS", "inactive", "us_equity")
-)
-
 @Preview
 @Composable
 private fun DefaultPreview() {
-    AssetsScreen()
+    AssetsScreen(navController = rememberNavController())
 }
