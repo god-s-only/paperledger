@@ -70,11 +70,6 @@ class FundingScreenViewModel @Inject constructor(
                         error = "Please enter an amount"
                     )
                 }
-            }
-            if(_state.value.relationshipId.isBlank()){
-                _state.value = _state.value.copy(
-                    error = "There is no relationship ID, kindly refresh"
-                )
             }else{
                 _state.update {
                     it.copy(
@@ -108,6 +103,11 @@ class FundingScreenViewModel @Inject constructor(
                         }
                         sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error ?: ""))
                     }
+                )
+            }
+            if(_state.value.relationshipId.isBlank()) {
+                _state.value = _state.value.copy(
+                    error = "There is no relationship ID, kindly refresh"
                 )
             }
         }

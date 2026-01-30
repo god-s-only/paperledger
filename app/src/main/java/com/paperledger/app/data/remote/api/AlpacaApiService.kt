@@ -8,6 +8,7 @@ import com.paperledger.app.data.remote.dto.ach_get.GetACHRelationshipsDTO
 import com.paperledger.app.data.remote.dto.assets.AssetsResponseDTO
 import com.paperledger.app.data.remote.dto.funding.request.FundingRequestDTO
 import com.paperledger.app.data.remote.dto.funding.response.success.FundingResponseDTO
+import com.paperledger.app.data.remote.dto.watchlists_get.GetWatchlistsDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -52,4 +53,9 @@ interface AlpacaApiService {
     suspend fun getACHRelationship(
         @Path("account_id") accountId: String
     ): Response<GetACHRelationshipsDTO>
+
+    @GET("/v1/trading/accounts/{account_id}/watchlists")
+    suspend fun getWatchlists(
+        @Path("account_id") accountId: String
+    ): Response<GetWatchlistsDTO>
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.domain.usecase.assets.GetAllAssetsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 class AssetsViewModel @Inject constructor(private val getAllAssetsUseCase: GetAllAssetsUseCase): ViewModel() {
     private val _state = MutableStateFlow(AssetsState())
     val state = _state.asStateFlow()

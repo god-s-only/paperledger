@@ -12,8 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,73 +25,157 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.domain.models.assets.AssetsModel
+import kotlinx.coroutines.flow.collectLatest
 
 val MT5_BLUE = Color(0xFF2196F3)
-val DARK_GREY = Color(0xFF1E222D)
+val MT5_GREEN = Color(0xFF4CAF50)
+val MT5_RED = Color(0xFFF44336)
 
 @Composable
 fun AssetsScreen(
     viewModel: AssetsViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val state = viewModel.state.collectAsState()
-    LaunchedEffect(true) {
-        viewModel.uiEvent.collect { event ->
-            when(event){
-                is UIEvent.Navigate -> {
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UIEvent.ShowSnackBar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        withDismissAction = true
+                    )
+                }
+                is UIEvent.Navigate -> {
+                    navController.navigate(event.route)
                 }
                 is UIEvent.PopBackStack -> {
-
-                }
-                is UIEvent.ShowSnackBar -> {
-
+                    navController.popBackStack()
                 }
             }
         }
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Text(
-            text = "MARKET WATCH",
-            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = MT5_BLUE,
-            fontWeight = FontWeight.Bold
-        )
 
-        OutlinedTextField(
-            value = state.value.searchQuery,
-            onValueChange = { viewModel.onEvent(AssetsScreenEvent.OnSearchQueryChange(it)) },
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("Search symbols...", fontSize = 14.sp) },
-            leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null, modifier = Modifier.size(24.dp)) },
-            singleLine = true,
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MT5_BLUE,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-            )
-        )
-
-        Divider(modifier = Modifier.padding(top = 8.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 16.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
-            items(state.value.assets.filter { it.symbol.contains(state.value.searchQuery, ignoreCase = true) }) { asset ->
-                AssetRow(asset)
-                Divider(
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
-                    modifier = Modifier.padding(horizontal = 16.dp)
+            // 1. High-Precision Loading Bar (MT5 Style)
+            if (state.isLoading) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp),
+                    color = MT5_BLUE,
+                    trackColor = MT5_BLUE.copy(alpha = 0.1f)
                 )
+            } else {
+                Spacer(modifier = Modifier.height(2.dp))
+            }
+
+            // 2. Section Header
+            Text(
+                text = "MARKET WATCH",
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
+                style = MaterialTheme.typography.labelMedium,
+                color = MT5_BLUE,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+
+            // 3. Search Input Field
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = { viewModel.onEvent(AssetsScreenEvent.OnSearchQueryChange(it)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                placeholder = { Text("Search symbols...", fontSize = 14.sp) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MT5_BLUE,
+                    focusedLabelColor = MT5_BLUE,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+            )
+
+            Divider(
+                modifier = Modifier.padding(top = 8.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+            )
+
+            // 4. Content Area
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                // Asset List
+                val filteredAssets = remember(state.assets, state.searchQuery) {
+                    state.assets.filter {
+                        it.symbol.contains(state.searchQuery, ignoreCase = true) ||
+                                it.name.contains(state.searchQuery, ignoreCase = true)
+                    }
+                }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(if (state.isLoading && filteredAssets.isNotEmpty()) 0.5f else 1f),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(items = filteredAssets) { asset ->
+                        AssetRow(asset)
+                        Divider(
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
+
+                // Initial Loading State (Large Spinner)
+                if (state.isLoading && state.assets.isEmpty()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MT5_BLUE,
+                        strokeWidth = 3.dp
+                    )
+                }
+
+                // Empty State Feedback
+                if (!state.isLoading && filteredAssets.isEmpty()) {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No assets found",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (state.searchQuery.isNotEmpty()) {
+                            Text(
+                                text = "Try adjusting your search",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -104,7 +190,8 @@ fun AssetRow(asset: AssetsModel) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        // Left Column: Ticker and Full Name
+        Column(modifier = Modifier.weight(1.2f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = asset.symbol,
@@ -116,7 +203,7 @@ fun AssetRow(asset: AssetsModel) {
                 StatusBadge(asset.status)
             }
             Text(
-                text = if (asset.name.isBlank()) "Unknown Asset" else asset.name,
+                text = asset.name.ifBlank { "Unlisted Security" },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -124,17 +211,20 @@ fun AssetRow(asset: AssetsModel) {
             )
         }
 
-        Column(horizontalAlignment = Alignment.End) {
+        // Right Column: Exchange and Asset Class
+        Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(0.8f)) {
             Text(
                 text = asset.exchange,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = MT5_BLUE
+                color = MT5_BLUE,
+                textAlign = TextAlign.End
             )
             Text(
                 text = asset.assetClass.replace("_", " ").uppercase(),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                textAlign = TextAlign.End
             )
         }
     }
@@ -142,11 +232,13 @@ fun AssetRow(asset: AssetsModel) {
 
 @Composable
 fun StatusBadge(status: String) {
-    val color = if (status == "active") Color(0xFF4CAF50) else Color(0xFFF44336)
+    val isActive = status.equals("active", ignoreCase = true)
+    val color = if (isActive) MT5_GREEN else MT5_RED
+
     Box(
         modifier = Modifier
             .border(0.5.dp, color.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-            .padding(horizontal = 4.dp, vertical = 1.dp)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
         Text(
             text = status.uppercase(),
@@ -157,8 +249,8 @@ fun StatusBadge(status: String) {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun DefaultPreview() {
+private fun AssetsPreview() {
     AssetsScreen(navController = rememberNavController())
 }

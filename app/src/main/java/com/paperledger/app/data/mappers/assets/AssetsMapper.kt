@@ -6,6 +6,7 @@ import com.paperledger.app.domain.models.assets.AssetsModel
 
 fun AssetsResponseDTOItem.toAssetsDomain(): AssetsModel{
     return AssetsModel(
+        id = id,
         symbol = symbol,
         name = name,
         exchange = exchange,
