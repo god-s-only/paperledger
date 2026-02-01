@@ -9,7 +9,7 @@ sealed class AppError(message: String? = null): Throwable() {
     object EmptyBody : AppError("Empty response body")
     data class Unknown(val reason: String?) : AppError(reason)
 }
- fun mapError(e: Exception): AppError{
+ fun mapError(e: Throwable): AppError{
     return when(e){
         is IOException -> AppError.NetworkUnavailable
         is HttpException -> AppError.HttpError(e.code(), e.message)
