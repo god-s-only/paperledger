@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import com.paperledger.app.domain.models.watchlists.WatchlistsEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

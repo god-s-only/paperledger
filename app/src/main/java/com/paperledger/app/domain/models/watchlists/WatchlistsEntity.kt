@@ -1,4 +1,4 @@
-package com.paperledger.app.data.local
+package com.paperledger.app.domain.models.watchlists
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.paperledger.app.core.AppError
 import com.paperledger.app.core.mapError
 import com.paperledger.app.data.local.PaperledgerDAO
-import com.paperledger.app.data.local.WatchlistsEntity
+import com.paperledger.app.domain.models.watchlists.WatchlistsEntity
 import com.paperledger.app.data.mappers.watchlists.toDomain
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
