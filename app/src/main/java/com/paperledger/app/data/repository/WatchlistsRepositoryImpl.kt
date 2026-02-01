@@ -23,7 +23,7 @@ import javax.inject.Inject
 import kotlin.run
 
 class WatchlistsRepositoryImpl @Inject constructor(private val alpacaApiService: AlpacaApiService, private val dao: PaperledgerDAO): WatchlistsRepository {
-    override suspend fun getWatchlists(accountId: String): Flow<Result<List<WatchlistsEntity>>> {
+    override fun getWatchlists(accountId: String): Flow<Result<List<WatchlistsEntity>>> {
         val localWatchlists = dao.observeAllWatchlists()
             .mapLatest { entities ->
                 if(entities.isNullOrEmpty()){

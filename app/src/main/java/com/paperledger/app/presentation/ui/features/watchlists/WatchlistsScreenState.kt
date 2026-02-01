@@ -5,5 +5,7 @@ import com.paperledger.app.domain.models.watchlists.WatchlistsEntity
 data class WatchlistsScreenState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val watchlists: List<WatchlistsEntity> = emptyList()
+    val watchlists: List<WatchlistsEntity> = emptyList(),
+    val accountId: String = "",
+    val message: String = ""
 )
