@@ -4,13 +4,14 @@ import com.google.gson.Gson
 import com.paperledger.app.core.AppError
 import com.paperledger.app.core.mapError
 import com.paperledger.app.data.local.PaperledgerDAO
-import com.paperledger.app.domain.models.watchlists.WatchlistsEntity
+import com.paperledger.app.data.local.WatchlistsEntity
 import com.paperledger.app.data.mappers.watchlists.toDomain
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
 import com.paperledger.app.data.remote.dto.watchlists_get.GetWatchlistsDTO
 import com.paperledger.app.domain.repository.WatchlistsRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -24,6 +25,7 @@ import javax.inject.Inject
 import kotlin.run
 
 class WatchlistsRepositoryImpl @Inject constructor(private val alpacaApiService: AlpacaApiService, private val dao: PaperledgerDAO): WatchlistsRepository {
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getWatchlists(accountId: String): Flow<Result<List<WatchlistsEntity>>> {
         val localWatchlists = dao.observeAllWatchlists()
             .mapLatest { entities ->

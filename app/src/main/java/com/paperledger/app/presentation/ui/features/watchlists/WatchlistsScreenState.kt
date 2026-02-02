@@ -1,6 +1,6 @@
 package com.paperledger.app.presentation.ui.features.watchlists
 
-import com.paperledger.app.domain.models.watchlists.WatchlistsEntity
+import com.paperledger.app.data.local.WatchlistsEntity
 
 data class WatchlistsScreenState(
     val isLoading: Boolean = false,

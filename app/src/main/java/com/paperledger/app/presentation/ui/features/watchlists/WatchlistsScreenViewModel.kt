@@ -2,6 +2,7 @@ package com.paperledger.app.presentation.ui.features.watchlists
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.paperledger.app.core.Routes
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
@@ -67,8 +68,15 @@ class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUse
                 )
             }
         }
+    }
 
+    fun onEvent(action: WatchlistsAction){
+        when(action){
+            is WatchlistsAction.OnAddWatchlistClick -> {
+                sendUIEvent(UIEvent.Navigate(Routes.ASSETS_SCREEN))
+            }
         }
+    }
 
     private val _uiEvent = Channel<UIEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()

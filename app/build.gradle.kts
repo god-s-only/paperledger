@@ -80,4 +80,5 @@ dependencies {
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.navigation:navigation-compose:$nav_version")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+    implementation("androidx.paging:paging-compose:3.3.0-alpha05")
 }

@@ -22,8 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.paperledger.app.core.UIEvent
-import com.paperledger.app.domain.models.watchlists.WatchlistsEntity
+import com.paperledger.app.data.local.WatchlistsEntity
 
 val MT5_BLUE = Color(0xFF2196F3)
 
@@ -31,8 +32,7 @@ val MT5_BLUE = Color(0xFF2196F3)
 @Composable
 fun WatchlistScreen(
     viewModel: WatchlistsScreenViewModel = hiltViewModel(),
-    onWatchlistClick: (String) -> Unit,
-    onAddWatchlist: () -> Unit
+    navController: NavController
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = androidx.compose.runtime.remember { SnackbarHostState() }
@@ -41,6 +41,9 @@ fun WatchlistScreen(
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is UIEvent.ShowSnackBar -> snackbarHostState.showSnackbar(event.message)
+                is UIEvent.Navigate -> {
+                    navController.navigate(event.route)
+                }
                 else -> Unit
             }
         }
@@ -59,7 +62,7 @@ fun WatchlistScreen(
                         )
                     },
                     actions = {
-                        IconButton(onClick = onAddWatchlist) {
+                        IconButton(onClick = { viewModel.onEvent(WatchlistsAction.OnAddWatchlistClick) }) {
                             Icon(Icons.Default.Add, contentDescription = "Add", tint = MT5_BLUE)
                         }
                     },
@@ -122,7 +125,7 @@ fun WatchlistScreen(
                     items(state.watchlists) { watchlist ->
                         WatchlistItem(
                             watchlist = watchlist,
-                            onClick = { onWatchlistClick(watchlist.id) }
+                            onClick = {  }
                         )
                         Divider(
                             thickness = 0.5.dp,
@@ -180,5 +183,4 @@ fun WatchlistItem(
 @Preview(showBackground = true)
 @Composable
 private fun DefaultPreview() {
-    WatchlistScreen(onWatchlistClick = {}, onAddWatchlist = {})
 }

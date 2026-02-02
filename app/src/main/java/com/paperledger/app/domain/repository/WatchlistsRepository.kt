@@ -1,7 +1,6 @@
 package com.paperledger.app.domain.repository
 
-import com.paperledger.app.domain.models.watchlists.WatchlistsEntity
-import com.paperledger.app.data.remote.dto.watchlists_get.GetWatchlistsDTO
+import com.paperledger.app.data.local.WatchlistsEntity
 import kotlinx.coroutines.flow.Flow
 
 interface WatchlistsRepository {

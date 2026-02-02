@@ -56,7 +56,7 @@ fun MainApp() {
             AssetsScreen(navController = navController)
         }
         composable(Routes.WATCHLISTS_SCREEN) {
-            WatchlistScreen(onWatchlistClick = {}) { }
+            WatchlistScreen(navController = navController)
         }
     }
 }
