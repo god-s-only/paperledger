@@ -18,6 +18,7 @@ import com.paperledger.app.presentation.ui.features.ach_relationships.ACHRelatio
 import com.paperledger.app.presentation.ui.features.assets.AssetsScreen
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
 import com.paperledger.app.presentation.ui.features.funding.FundingScreen
+import com.paperledger.app.presentation.ui.features.watchlists.WatchlistScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-    NavHost(navController, startDestination = Routes.ASSETS_SCREEN){
+    NavHost(navController, startDestination = Routes.WATCHLISTS_SCREEN){
         composable(Routes.SIGN_UP) {
             SignUpScreen(navController = navController)
         }
@@ -53,6 +54,9 @@ fun MainApp() {
         }
         composable(Routes.ASSETS_SCREEN) {
             AssetsScreen(navController = navController)
+        }
+        composable(Routes.WATCHLISTS_SCREEN) {
+            WatchlistScreen(onWatchlistClick = {}) { }
         }
     }
 }

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.retry
+import okio.IOException
 import javax.inject.Inject
 import kotlin.run
 
@@ -26,11 +27,7 @@ class WatchlistsRepositoryImpl @Inject constructor(private val alpacaApiService:
     override fun getWatchlists(accountId: String): Flow<Result<List<WatchlistsEntity>>> {
         val localWatchlists = dao.observeAllWatchlists()
             .mapLatest { entities ->
-                if(entities.isNullOrEmpty()){
-                    Result.failure(AppError.EmptyBody)
-                }else{
-                    Result.success(entities)
-                }
+                Result.success(entities)
             }
         val remoteRefresh = flow {
             val res = alpacaApiService.getWatchlists(accountId)
@@ -47,9 +44,10 @@ class WatchlistsRepositoryImpl @Inject constructor(private val alpacaApiService:
             emit(Result.success(body.map { it.toDomain() }))
         }
             .retry(3) {
-                cause ->  cause is AppError.NetworkUnavailable
+                cause ->  cause is IOException
             }
             .catch { e ->
+                e.printStackTrace()
                 emit(Result.failure(mapError(e)))
             }
             .flowOn(Dispatchers.IO)

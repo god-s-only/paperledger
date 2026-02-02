@@ -10,6 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -22,25 +24,16 @@ import javax.inject.Inject
 @HiltViewModel
 class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUseCase: GetWatchlistsUseCase, private val getUserIdUseCase: GetUserIdUseCase): ViewModel() {
     private val _state = MutableStateFlow(WatchlistsScreenState())
-    val state = _state.onStart {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    accountId = getUserIdUseCase.invoke() ?: "",
-                    isLoading = true
-                )
-            }
-        }
+    val state = _state.asStateFlow()
+
+    init {
         getWatchlists()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000L),
-        initialValue = WatchlistsScreenState()
-    )
+    }
 
     fun getWatchlists(){
+        viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
-            getWatchlistsUseCase.invoke(_state.value.accountId).onEach { result ->
+            getWatchlistsUseCase.invoke(getUserIdUseCase() ?: "").collectLatest { result ->
                 result.fold(
                     onSuccess = { entities ->
                         if(entities.isEmpty()){
@@ -62,6 +55,8 @@ class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUse
                         }
                     },
                     onFailure = { exception ->
+                        println("ViewModel received failure: ${exception.javaClass.simpleName} - ${exception.message}")
+                        exception.printStackTrace()
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -70,7 +65,9 @@ class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUse
                         }
                     }
                 )
-            }.launchIn(viewModelScope)
+            }
+        }
+
         }
 
     private val _uiEvent = Channel<UIEvent>()

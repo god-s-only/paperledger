@@ -1,6 +1,8 @@
 package com.paperledger.app.di
 
 import com.paperledger.app.data.local.PaperLedgerSession
+import com.paperledger.app.data.local.PaperledgerDAO
+import com.paperledger.app.data.local.PaperledgerDatabase
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.repository.ACHRelationshipRepositoryImpl
 import com.paperledger.app.data.repository.AssetsRepositoryImpl
@@ -50,7 +52,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideWatchlistsRepository(alpacaApi: AlpacaApiService): WatchlistsRepository {
-        return WatchlistsRepositoryImpl(alpacaApi)
+    fun provideWatchlistsRepository(alpacaApi: AlpacaApiService, db: PaperledgerDatabase): WatchlistsRepository {
+        return WatchlistsRepositoryImpl(alpacaApi, db.paperledgerDao())
     }
 }
