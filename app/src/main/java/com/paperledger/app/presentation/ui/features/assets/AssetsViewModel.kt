@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.domain.usecase.assets.GetAllAssetsUseCase
+import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
+import com.paperledger.app.domain.usecase.watchlists.CreateWatchlistUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +17,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AssetsViewModel @Inject constructor(private val getAllAssetsUseCase: GetAllAssetsUseCase): ViewModel() {
+class AssetsViewModel @Inject constructor(
+    private val getAllAssetsUseCase: GetAllAssetsUseCase,
+    private val createWatchlistUseCase: CreateWatchlistUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase
+): ViewModel() {
     private val _state = MutableStateFlow(AssetsState())
     val state = _state.asStateFlow()
 
@@ -60,6 +66,36 @@ class AssetsViewModel @Inject constructor(private val getAllAssetsUseCase: GetAl
             }
             is AssetsScreenEvent.OnSearchQueryChange -> {
                 _state.value = _state.value.copy(searchQuery = event.searchQuery)
+            }
+            is AssetsScreenEvent.OnCreateWatchlist -> {
+                viewModelScope.launch {
+                    val accountId = getUserIdUseCase()
+                    if (accountId == null) {
+                        sendUIEvent(UIEvent.ShowSnackBar(message = "User not logged in"))
+                        return@launch
+                    }
+
+                    _state.update { it.copy(isLoading = true) }
+
+                    createWatchlistUseCase.invoke(
+                        accountId = accountId,
+                        name = "${event.asset.symbol} Watchlist",
+                        symbols = listOf(event.asset.symbol)
+                    ).fold(
+                        onSuccess = {
+                            _state.update {
+                                it.copy(isLoading = false, error = null)
+                            }
+                            sendUIEvent(UIEvent.ShowSnackBar(message = "${event.asset.symbol} added to watchlist"))
+                        },
+                        onFailure = { error ->
+                            _state.update {
+                                it.copy(isLoading = false, error = mapErrorMessage(error))
+                            }
+                            sendUIEvent(UIEvent.ShowSnackBar(message = "Failed to add to watchlist: ${mapErrorMessage(error)}"))
+                        }
+                    )
+                }
             }
         }
     }

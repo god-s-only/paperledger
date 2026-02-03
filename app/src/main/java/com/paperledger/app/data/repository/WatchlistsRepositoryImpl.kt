@@ -9,6 +9,7 @@ import com.paperledger.app.data.mappers.watchlists.toDomain
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
 import com.paperledger.app.data.remote.dto.watchlists_get.GetWatchlistsDTO
+import com.paperledger.app.data.remote.dto.watchlists_post.PostWatchlistRequestDTO
 import com.paperledger.app.domain.repository.WatchlistsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,7 +21,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.retry
-import okio.IOException
+import org.json.JSONObject
 import javax.inject.Inject
 import kotlin.run
 
@@ -46,7 +47,7 @@ class WatchlistsRepositoryImpl @Inject constructor(private val alpacaApiService:
             emit(Result.success(body.map { it.toDomain() }))
         }
             .retry(3) {
-                cause ->  cause is IOException
+                cause ->  cause is AppError.NetworkUnavailable
             }
             .catch { e ->
                 e.printStackTrace()
@@ -60,5 +61,30 @@ class WatchlistsRepositoryImpl @Inject constructor(private val alpacaApiService:
         )
             .flowOn(Dispatchers.IO)
             .distinctUntilChanged()
+    }
+
+    override suspend fun createWatchlist(accountId: String, name: String, symbols: List<String>): Result<Unit> {
+        return try {
+            val request = PostWatchlistRequestDTO(name = name, symbols = symbols)
+            val response = alpacaApiService.createWatchlist(accountId, request)
+
+            if (!response.isSuccessful) {
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = if (errorBody != null) {
+                    try {
+                        JSONObject(errorBody).getString("message")
+                    } catch (e: Exception) {
+                        "Failed to create watchlist"
+                    }
+                } else {
+                    "Failed to create watchlist"
+                }
+                return Result.failure(AppError.HttpError(response.code(), errorMessage))
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(mapError(e))
+        }
     }
 }

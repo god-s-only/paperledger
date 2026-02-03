@@ -2,12 +2,16 @@ package com.paperledger.app.presentation.ui.features.assets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +35,7 @@ val MT5_BLUE = Color(0xFF2196F3)
 val MT5_GREEN = Color(0xFF4CAF50)
 val MT5_RED = Color(0xFFF44336)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssetsScreen(
     viewModel: AssetsViewModel = hiltViewModel(),
@@ -38,6 +43,7 @@ fun AssetsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var selectedAsset by remember { mutableStateOf<AssetsModel?>(null) }
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
@@ -138,7 +144,12 @@ fun AssetsScreen(
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     items(items = filteredAssets) { asset ->
-                        AssetRow(asset)
+                        AssetRow(
+                            asset = asset,
+                            onClick = {
+                                selectedAsset = asset
+                            }
+                        )
                         Divider(
                             thickness = 0.5.dp,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
@@ -176,16 +187,135 @@ fun AssetsScreen(
                         }
                     }
                 }
+
+                // Asset Bottom Sheet
+                selectedAsset?.let { asset ->
+                    ModalBottomSheet(
+                        onDismissRequest = { selectedAsset = null },
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            // Asset Header
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .background(
+                                            MT5_BLUE.copy(alpha = 0.1f),
+                                            RoundedCornerShape(12.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = asset.symbol.take(2),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MT5_BLUE
+                                    )
+                                }
+                                Column {
+                                    Text(
+                                        text = asset.symbol,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = asset.name,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Divider(
+                                modifier = Modifier.padding(vertical = 16.dp),
+                                thickness = 1.dp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                            )
+
+                            // Information Button
+                            Button(
+                                onClick = {
+                                    selectedAsset = null
+                                    viewModel.onEvent(AssetsScreenEvent.OnAssetClick(asset))
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Info,
+                                    contentDescription = "Information",
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Information",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Add to Watchlist Button
+                    Button(
+                        onClick = {
+                            selectedAsset = null
+                            viewModel.onEvent(AssetsScreenEvent.OnCreateWatchlist(asset))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MT5_BLUE
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Add to Watchlist",
+                            modifier = Modifier.size(24.dp),
+                            tint = Color.White
+                        )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Add to Watchlist",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun AssetRow(asset: AssetsModel) {
+fun AssetRow(asset: AssetsModel, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
