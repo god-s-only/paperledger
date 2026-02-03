@@ -8,6 +8,7 @@ import com.paperledger.app.data.remote.dto.ach_get.GetACHRelationshipsDTO
 import com.paperledger.app.data.remote.dto.assets.AssetsResponseDTO
 import com.paperledger.app.data.remote.dto.funding.request.FundingRequestDTO
 import com.paperledger.app.data.remote.dto.funding.response.success.FundingResponseDTO
+import com.paperledger.app.data.remote.dto.open_positions_get.GetOpenPositionResponseDTO
 import com.paperledger.app.data.remote.dto.watchlists_get.GetWatchlistsDTO
 import com.paperledger.app.data.remote.dto.watchlists_post.PostWatchlistRequestDTO
 import com.paperledger.app.data.remote.dto.watchlists_post.PostWatchlistResponseDTO
@@ -66,4 +67,9 @@ interface AlpacaApiService {
         @Path("account_id") accountID: String,
         @Body request: PostWatchlistRequestDTO
     ): Response<PostWatchlistResponseDTO>
+
+    @GET("/v1/trading/accunts/{account_id}/positions")
+    suspend fun getOpenPositions(
+        @Path("account_id") accountId: String
+    ): Response<GetOpenPositionResponseDTO>
 }
