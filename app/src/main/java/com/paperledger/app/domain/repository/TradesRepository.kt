@@ -8,5 +8,4 @@ import kotlinx.coroutines.flow.Flow
 interface TradesRepository {
     suspend fun getPendingOrders(accountId: String): Result<List<Order>>
     fun getOpenPositions(accountId: String): Flow<Result<List<Position>>>
-    fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>>
 }

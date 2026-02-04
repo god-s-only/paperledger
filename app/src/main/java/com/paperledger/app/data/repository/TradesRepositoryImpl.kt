@@ -2,6 +2,7 @@ package com.paperledger.app.data.repository
 
 import com.google.gson.Gson
 import com.paperledger.app.core.AppError
+import com.paperledger.app.core.POLL_INTERVAL_MS
 import com.paperledger.app.core.mapError
 import com.paperledger.app.data.mappers.trade.toDomain
 import com.paperledger.app.data.remote.api.AlpacaApiService
@@ -12,6 +13,7 @@ import com.paperledger.app.domain.models.trade.Position
 import com.paperledger.app.domain.repository.TradesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -20,15 +22,14 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import org.json.JSONObject
 import okio.IOException
 import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
 
 class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: AlpacaApiService) : TradesRepository {
 
-    companion object {
-        private const val POLL_INTERVAL_MS = 5000L // 5 seconds
-    }
     override suspend fun getPendingOrders(accountId: String): Result<List<Order>> {
         return try {
             val response = alpacaApiService.getPendingOrders(accountId)
@@ -80,47 +81,6 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
                         }
                         val positions = body.map { it.toDomain() }
                         emit(Result.success(positions))
-                    }
-
-                    delay(POLL_INTERVAL_MS)
-                } catch (e: Exception) {
-                    emit(Result.failure(mapError(e)))
-                    delay(POLL_INTERVAL_MS)
-                }
-            }
-        }
-            .retry(3) { cause -> cause is IOException }
-            .catch { e ->
-                e.printStackTrace()
-                emit(Result.failure(mapError(e)))
-            }
-            .flowOn(Dispatchers.IO)
-            .distinctUntilChanged()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
-        return flow {
-            while (true) {
-                try {
-                    val response = alpacaApiService.getAccountById(accountId)
-
-                    if (!response.isSuccessful) {
-                        val errorMessage = response.errorBody()?.string()?.let {
-                            try {
-                                JSONObject(it).getString("message")
-                            } catch (e: Exception) {
-                                "Error fetching account info"
-                            }
-                        } ?: "Error fetching account info"
-                        emit(Result.failure(AppError.HttpError(response.code(), errorMessage)))
-                    } else {
-                        val body = response.body() ?: run {
-                            emit(Result.failure(AppError.EmptyBody))
-                            return@flow
-                        }
-                        val accountInfo = body.toAccountInfo()
-                        emit(Result.success(accountInfo))
                     }
 
                     delay(POLL_INTERVAL_MS)

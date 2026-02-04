@@ -2,15 +2,29 @@ package com.paperledger.app.data.repository
 
 import com.google.gson.Gson
 import com.paperledger.app.core.AppError
+import com.paperledger.app.core.POLL_INTERVAL_MS
 import com.paperledger.app.core.mapError
 import com.paperledger.app.data.local.PaperLedgerSession
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
+import com.paperledger.app.data.repository.TradesRepositoryImpl.Companion.POLL_INTERVAL_MS
+import com.paperledger.app.domain.models.trade.AccountInfo
 import com.paperledger.app.domain.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import okio.IOException
+import org.json.JSONObject
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -63,5 +77,48 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
 
     override suspend fun getUserId(): String? {
         return paperLedgerSession.getUserId()
+    }
+
+    override suspend fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
+        @OptIn(ExperimentalCoroutinesApi::class)
+        override fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
+            return flow {
+                while (currentCoroutineContext().isActive) {
+                    try {
+                        val response = alpacaApiService.getAccountById(accountId)
+
+                        if (!response.isSuccessful) {
+                            val errorMessage = response.errorBody()?.string()?.let {
+                                try {
+                                    JSONObject(it).getString("message")
+                                } catch (e: Exception) {
+                                    "Error fetching account info"
+                                }
+                            } ?: "Error fetching account info"
+                            emit(Result.failure(AppError.HttpError(response.code(), errorMessage)))
+                        } else {
+                            val body = response.body() ?: run {
+                                emit(Result.failure(AppError.EmptyBody))
+                                return@flow
+                            }
+                            val accountInfo = body.toAccountInfo()
+                            emit(Result.success(accountInfo))
+                        }
+
+                        delay(POLL_INTERVAL_MS)
+                    } catch (e: Exception) {
+                        emit(Result.failure(mapError(e)))
+                        delay(POLL_INTERVAL_MS)
+                    }
+                }
+            }
+                .retry(3) { cause -> cause is IOException }
+                .catch { e ->
+                    e.printStackTrace()
+                    emit(Result.failure(mapError(e)))
+                }
+                .flowOn(Dispatchers.IO)
+                .distinctUntilChanged()
+        }
     }
 }
