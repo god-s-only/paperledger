@@ -8,11 +8,13 @@ import com.paperledger.app.data.repository.ACHRelationshipRepositoryImpl
 import com.paperledger.app.data.repository.AssetsRepositoryImpl
 import com.paperledger.app.data.repository.AuthRepositoryImpl
 import com.paperledger.app.data.repository.FundingRepositoryImpl
+import com.paperledger.app.data.repository.TradesRepositoryImpl
 import com.paperledger.app.data.repository.WatchlistsRepositoryImpl
 import com.paperledger.app.domain.repository.ACHRelationshipRepository
 import com.paperledger.app.domain.repository.AssetsRepository
 import com.paperledger.app.domain.repository.AuthRepository
 import com.paperledger.app.domain.repository.FundingRepository
+import com.paperledger.app.domain.repository.TradesRepository
 import com.paperledger.app.domain.repository.WatchlistsRepository
 import dagger.Binds
 import dagger.Module
@@ -54,5 +56,11 @@ object RepositoryModule {
     @Singleton
     fun provideWatchlistsRepository(alpacaApi: AlpacaApiService, db: PaperledgerDatabase): WatchlistsRepository {
         return WatchlistsRepositoryImpl(alpacaApi, db.paperledgerDao())
+    }
+
+    @Provides
+    @Singleton
+    fun provideTradesRepository(alpacaApi: AlpacaApiService): TradesRepository {
+        return TradesRepositoryImpl(alpacaApi)
     }
 }

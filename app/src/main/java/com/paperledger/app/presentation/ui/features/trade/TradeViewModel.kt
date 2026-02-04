@@ -4,6 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.Routes
+import com.paperledger.app.core.mapErrorMessage
+import com.paperledger.app.domain.models.trade.Position
+import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
+import com.paperledger.app.domain.usecase.trade.GetAccountInfoUseCase
+import com.paperledger.app.domain.usecase.trade.GetOpenPositionsUseCase
+import com.paperledger.app.domain.usecase.trade.GetPendingOrdersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +20,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TradeViewModel @Inject constructor(): ViewModel() {
+class TradeViewModel @Inject constructor(
+    private val getOpenPositionsUseCase: GetOpenPositionsUseCase,
+    private val getPendingOrdersUseCase: GetPendingOrdersUseCase,
+    private val getAccountInfoUseCase: GetAccountInfoUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase
+): ViewModel() {
     private val _state = MutableStateFlow(TradeScreenState())
     val state = _state.asStateFlow()
 
@@ -22,63 +33,132 @@ class TradeViewModel @Inject constructor(): ViewModel() {
     val uiEvent = _uiEvent.receiveAsFlow()
 
     init {
-        // Initialize with sample data for demo purposes
         viewModelScope.launch {
-            loadSampleData()
+            val accountId = getUserIdUseCase()
+            if (accountId != null) {
+                startDataStreams(accountId)
+            }
         }
     }
 
-    private fun loadSampleData() {
-        _state.update { it.copy(
-            isLoading = false,
-            balance = 100000.0,
-            freeMargin = 95000.0,
-            equity = 100250.0,
-            margin = 5000.0,
-            pnl = 250.0,
-            positions = listOf(
-                PositionItem(
-                    symbol = "AAPL",
-                    type = "BUY",
-                    volume = 10.0,
-                    entryPrice = 175.50,
-                    currentPrice = 178.25,
-                    pnl = 275.0,
-                    pnlPercent = 1.57,
-                    openTime = "2024-01-15 10:30"
-                ),
-                PositionItem(
-                    symbol = "GOOGL",
-                    type = "BUY",
-                    volume = 5.0,
-                    entryPrice = 142.30,
-                    currentPrice = 141.50,
-                    pnl = -40.0,
-                    pnlPercent = -0.56,
-                    openTime = "2024-01-14 14:20"
+    private fun startDataStreams(accountId: String) {
+        // Collect account info stream
+        viewModelScope.launch {
+            getAccountInfoUseCase.invoke(accountId).collectLatest { result ->
+                result.fold(
+                    onSuccess = { accountInfo ->
+                        _state.update { currentState ->
+                            currentState.copy(
+                                isLoading = false,
+                                balance = accountInfo.balance,
+                                freeMargin = accountInfo.buyingPower,
+                                equity = accountInfo.equity,
+                                margin = accountInfo.maintenanceMargin,
+                                pnl = accountInfo.portfolioValue - accountInfo.costBasis,
+                                error = null
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        _state.update { currentState ->
+                            currentState.copy(
+                                isLoading = false,
+                                error = mapErrorMessage(error)
+                            )
+                        }
+                    }
                 )
-            ),
-            pendingOrders = listOf(
-                OrderItem(
-                    symbol = "TSLA",
-                    type = "BUY LIMIT",
-                    volume = 15.0,
-                    price = 215.00,
-                    stopLoss = 210.00,
-                    takeProfit = 225.00,
-                    placementTime = "2024-01-15 09:15"
+            }
+        }
+
+        // Collect open positions stream
+        viewModelScope.launch {
+            getOpenPositionsUseCase.invoke(accountId).collectLatest { result ->
+                result.fold(
+                    onSuccess = { positions ->
+                        _state.update { currentState ->
+                            currentState.copy(
+                                positions = positions.map { position ->
+                                    PositionItem(
+                                        symbol = position.symbol,
+                                        type = position.side.uppercase(),
+                                        volume = position.quantity,
+                                        entryPrice = position.entryPrice,
+                                        currentPrice = position.currentPrice,
+                                        pnl = position.unrealizedPl,
+                                        pnlPercent = position.unrealizedPlPercent,
+                                        openTime = position.createdAt
+                                    )
+                                }
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        _state.update { currentState ->
+                            currentState.copy(
+                                error = mapErrorMessage(error)
+                            )
+                        }
+                    }
                 )
-            )
-        )}
+            }
+        }
+
+        // Load pending orders one-time on init
+        viewModelScope.launch {
+            loadPendingOrders(accountId)
+        }
+    }
+
+    private suspend fun loadPendingOrders(accountId: String) {
+        _state.update { it.copy(isLoading = true) }
+
+        getPendingOrdersUseCase.invoke(accountId).fold(
+            onSuccess = { orders ->
+                _state.update { currentState ->
+                    currentState.copy(
+                        isLoading = false,
+                        pendingOrders = orders.map { order ->
+                            OrderItem(
+                                symbol = order.symbol,
+                                type = when (order.type) {
+                                    "market" -> "MARKET"
+                                    "limit" -> "LIMIT"
+                                    "stop" -> "STOP"
+                                    "stop_limit" -> "STOP LIMIT"
+                                    "trailing_stop" -> "TRAILING STOP"
+                                    else -> order.type.uppercase()
+                                },
+                                volume = order.quantity,
+                                price = order.limitPrice ?: order.stopPrice ?: 0.0,
+                                stopLoss = order.stopPrice,
+                                takeProfit = order.filledAvgPrice,
+                                placementTime = order.createdAt
+                            )
+                        }
+                    )
+                }
+            },
+            onFailure = { error ->
+                _state.update { currentState ->
+                    currentState.copy(
+                        isLoading = false,
+                        error = mapErrorMessage(error)
+                    )
+                }
+                sendUIEvent(UIEvent.ShowSnackBar(message = "Failed to load pending orders"))
+            }
+        )
     }
 
     fun onEvent(event: TradeScreenEvent) {
         when(event) {
             TradeScreenEvent.OnRefresh -> {
                 viewModelScope.launch {
-                    _state.update { it.copy(isLoading = true) }
-                    // In real app, refresh data from API
-                    loadSampleData()
+                    val accountId = getUserIdUseCase()
+                    if (accountId != null) {
+                        loadPendingOrders(accountId)
+                    }
                 }
             }
             TradeScreenEvent.OnPlaceTradeClick -> {

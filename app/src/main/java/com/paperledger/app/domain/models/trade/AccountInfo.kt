@@ -1,0 +1,31 @@
+package com.paperledger.app.domain.models.trade
+
+data class AccountInfo(
+    val accountId: String,
+    val currency: String,
+    val balance: Double,
+    val cash: Double,
+    val portfolioValue: Double,
+    val buyingPower: Double,
+    val daytradeBuyingPower: Double,
+    val longMarketValue: Double,
+    val shortMarketValue: Double,
+    val equity: Double,
+    val lastEquity: Double,
+    val multiplier: Double,
+    val initialMargin: Double,
+    val maintenanceMargin: Double,
+    val daytradingBuyingPower: Double,
+    val regTBuyingPower: Double,
+    val equityWithLoan: Double,
+    val lastMaintenanceMargin: Double,
+    val daytradingAccount: Boolean,
+    val tradingBlocked: Boolean,
+    val transfersBlocked: Boolean,
+    val accountBlocked: Boolean,
+    val createdAt: String,
+    val status: String,
+    val accountType: String,
+    val cryptoStatus: String,
+    val enabledAssets: List<String>
+)
