@@ -5,10 +5,10 @@ import com.paperledger.app.core.AppError
 import com.paperledger.app.core.POLL_INTERVAL_MS
 import com.paperledger.app.core.mapError
 import com.paperledger.app.data.local.PaperLedgerSession
+import com.paperledger.app.data.mappers.account.toAccountInfo
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.account.request.AccountRequestDTO
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
-import com.paperledger.app.data.repository.TradesRepositoryImpl.Companion.POLL_INTERVAL_MS
 import com.paperledger.app.domain.models.trade.AccountInfo
 import com.paperledger.app.domain.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
@@ -78,14 +78,12 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
     override suspend fun getUserId(): String? {
         return paperLedgerSession.getUserId()
     }
-
-    override suspend fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
-        @OptIn(ExperimentalCoroutinesApi::class)
+     @OptIn(ExperimentalCoroutinesApi::class)
         override fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
             return flow {
                 while (currentCoroutineContext().isActive) {
                     try {
-                        val response = alpacaApiService.getAccountById(accountId)
+                        val response = alpacaApi.getAccountById(accountId)
 
                         if (!response.isSuccessful) {
                             val errorMessage = response.errorBody()?.string()?.let {
@@ -121,4 +119,3 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
                 .distinctUntilChanged()
         }
     }
-}

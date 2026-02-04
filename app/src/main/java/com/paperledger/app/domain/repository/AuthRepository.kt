@@ -9,5 +9,5 @@ interface AuthRepository {
     suspend fun updateAccount(accountId: String, accountRequest: AccountRequestDTO): Result<Unit>
     suspend fun storeUserId(userId: String): Result<Unit>
     suspend fun getUserId(): String?
-    suspend fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>>
+    fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>>
 }
