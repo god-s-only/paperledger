@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
 
 // MT5 Color Palette
 val MT5_BLUE = Color(0xFF2196F3)
@@ -27,12 +30,10 @@ val MT5_DOWN = Color(0xFFF44336)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TradeScreen(
-    balance: String = "10,245.50",
-    equity: String = "10,280.15",
-    margin: String = "250.00",
-    freeMargin: String = "10,030.15",
-    onAddOrder: () -> Unit = {}
+    navController: NavController,
+    viewModel: TradeViewModel = hiltViewModel()
 ) {
+    val state = viewModel.state.collectAsState()
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -40,7 +41,7 @@ fun TradeScreen(
                     Text("TRADE", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 },
                 actions = {
-                    IconButton(onClick = onAddOrder) {
+                    IconButton(onClick = {}) {
                         Icon(Icons.Default.Add, contentDescription = "New Order", tint = MT5_BLUE)
                     }
                 },
@@ -57,14 +58,14 @@ fun TradeScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // 1. Account Parameters Header (Now White/Transparent)
-            AccountMetricsHeader(balance, equity, margin, freeMargin)
+            AccountMetricsHeader(state.value.balance.toString(), state.value.equity.toString(), state.value.margin.toString(), state.value.margin.toString())
 
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 // 2. Positions Section
                 item { SectionHeader("POSITIONS") }
-                items(dummyPositions) { position ->
+                items(state.value.positions) { position ->
                     TradeItemRow(position)
                     HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.1f))
                 }
@@ -77,7 +78,7 @@ fun TradeScreen(
 
                 // 4. Pending Orders Section
                 item { SectionHeader("ORDERS") }
-                items(dummyOrders) { order ->
+                items(state.value.pendingOrders) { order ->
                     TradeItemRow(order, isPending = true)
                     HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.1f))
                 }
@@ -132,8 +133,8 @@ fun SectionHeader(title: String) {
 }
 
 @Composable
-fun TradeItemRow(trade: TradeData, isPending: Boolean = false) {
-    val profitColor = if (trade.profit.startsWith("-")) MT5_DOWN else MT5_UP
+fun TradeItemRow(trade: TradeScreenState, isPending: Boolean = false) {
+    val profitColor = if (trade.pnl.toString().startsWith("-")) MT5_DOWN else MT5_UP
 
     Row(
         modifier = Modifier
@@ -182,29 +183,40 @@ fun TradeItemRow(trade: TradeData, isPending: Boolean = false) {
     }
 }
 
-// Models & Dummy Data remain the same
-data class TradeData(
-    val symbol: String,
-    val type: String,
-    val lots: String,
-    val openPrice: String,
-    val currentPrice: String,
-    val profit: String = ""
-)
-
-val dummyPositions = listOf(
-    TradeData("EURUSD", "Buy", "0.10", "1.08542", "1.08610", "6.80"),
-    TradeData("XAUUSD", "Sell", "0.05", "2024.15", "2021.50", "13.25"),
-    TradeData("BTCUSD", "Buy", "0.01", "43250.00", "43100.00", "-1.50")
-)
-
-val dummyOrders = listOf(
-    TradeData("GBPUSD", "Buy Limit", "0.20", "1.26400", "1.26550"),
-    TradeData("NAS100", "Sell Stop", "0.10", "17500.00", "17620.00")
-)
+@Composable
+fun TradeOrderRow(trade: OrderItem) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(trade.symbol, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = trade.type,
+                    color = if (trade.type.contains("Buy")) MT5_BLUE else MT5_DOWN,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(", ${trade.quantity}", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+            Text(
+                text = "PENDING",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray,
+                fontWeight = FontWeight.Bold
+            )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
 fun TradePreview() {
-    TradeScreen()
+
 }

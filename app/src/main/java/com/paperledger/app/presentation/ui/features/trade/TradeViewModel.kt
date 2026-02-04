@@ -122,6 +122,7 @@ class TradeViewModel @Inject constructor(
                                 price = order.limitPrice ?: order.stopPrice ?: 0.0,
                                 stopLoss = order.stopPrice,
                                 takeProfit = order.filledAvgPrice,
+                                quantity = order.quantity,
                                 placementTime = order.createdAt
                             )
                         }

@@ -25,6 +25,7 @@ data class PositionItem(
 data class OrderItem(
     val symbol: String = "",
     val type: String = "",
+    val quantity: Double = 0.0,
     val volume: Double = 0.0,
     val price: Double = 0.0,
     val stopLoss: Double? = null,
