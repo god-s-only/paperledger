@@ -21,6 +21,5 @@ data class Order(
     val stopPrice: Double?,
     val filledAvgPrice: Double?,
     val commission: Double,
-    val exchange: String,
     val assetClass: String
 )

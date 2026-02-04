@@ -3,7 +3,6 @@ package com.paperledger.app.data.repository
 import com.google.gson.Gson
 import com.paperledger.app.core.AppError
 import com.paperledger.app.core.mapError
-import com.paperledger.app.data.mappers.trade.toAccountInfo
 import com.paperledger.app.data.mappers.trade.toDomain
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
@@ -99,7 +98,6 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
             .distinctUntilChanged()
     }
 
-    // Flow with 5-second polling for account info
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
         return flow {
