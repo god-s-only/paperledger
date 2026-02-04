@@ -6,14 +6,16 @@ import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.Routes
 import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.domain.models.trade.Position
+import com.paperledger.app.domain.usecase.auth.GetAccountInfoUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
-import com.paperledger.app.domain.usecase.trade.GetAccountInfoUseCase
 import com.paperledger.app.domain.usecase.trade.GetOpenPositionsUseCase
 import com.paperledger.app.domain.usecase.trade.GetPendingOrdersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,69 +44,56 @@ class TradeViewModel @Inject constructor(
     }
 
     private fun startDataStreams(accountId: String) {
-        // Collect account info stream
         viewModelScope.launch {
-            getAccountInfoUseCase.invoke(accountId).collectLatest { result ->
-                result.fold(
-                    onSuccess = { accountInfo ->
-                        _state.update { currentState ->
-                            currentState.copy(
-                                isLoading = false,
-                                balance = accountInfo.balance,
-                                freeMargin = accountInfo.buyingPower,
-                                equity = accountInfo.equity,
-                                margin = accountInfo.maintenanceMargin,
-                                pnl = accountInfo.portfolioValue - accountInfo.costBasis,
-                                error = null
-                            )
-                        }
-                    },
-                    onFailure = { error ->
-                        _state.update { currentState ->
-                            currentState.copy(
-                                isLoading = false,
-                                error = mapErrorMessage(error)
-                            )
-                        }
+            combine(
+                getAccountInfoUseCase.invoke(accountId),
+                getOpenPositionsUseCase.invoke(accountId)
+            ) { accountInfoResult, openPositionsResult ->
+
+                val accountInfoError = accountInfoResult.exceptionOrNull()
+                val openPositionsError = openPositionsResult.exceptionOrNull()
+
+                _state.update { current ->
+
+                    var newState = current.copy(
+                        isLoading = false,
+                        error = null
+                    )
+
+                    accountInfoResult.getOrNull()?.let { accountInfo ->
+                        newState = newState.copy(
+                            balance = accountInfo.lastEquity,
+                            equity = accountInfo.lastEquity
+                        )
                     }
-                )
+
+                    openPositionsResult.getOrNull()?.let { positions ->
+                        newState = newState.copy(
+                            positions = positions.map { position ->
+                                PositionItem(
+                                    symbol = position.symbol,
+                                    type = position.side.uppercase(),
+                                    volume = position.quantity,
+                                    entryPrice = position.entryPrice,
+                                    currentPrice = position.currentPrice,
+                                    pnl = position.unrealizedPl,
+                                    pnlPercent = position.unrealizedPlPercent
+                                )
+                            }
+                        )
+                    }
+
+                    val error = accountInfoError ?: openPositionsError
+                    if (error != null) {
+                        newState = newState.copy(
+                            error = mapErrorMessage(error)
+                        )
+                    }
+
+                    newState
+                }
             }
         }
-
-        // Collect open positions stream
-        viewModelScope.launch {
-            getOpenPositionsUseCase.invoke(accountId).collectLatest { result ->
-                result.fold(
-                    onSuccess = { positions ->
-                        _state.update { currentState ->
-                            currentState.copy(
-                                positions = positions.map { position ->
-                                    PositionItem(
-                                        symbol = position.symbol,
-                                        type = position.side.uppercase(),
-                                        volume = position.quantity,
-                                        entryPrice = position.entryPrice,
-                                        currentPrice = position.currentPrice,
-                                        pnl = position.unrealizedPl,
-                                        pnlPercent = position.unrealizedPlPercent,
-                                        openTime = position.createdAt
-                                    )
-                                }
-                            )
-                        }
-                    },
-                    onFailure = { error ->
-                        _state.update { currentState ->
-                            currentState.copy(
-                                error = mapErrorMessage(error)
-                            )
-                        }
-                    }
-                )
-            }
-        }
-
-        // Load pending orders one-time on init
         viewModelScope.launch {
             loadPendingOrders(accountId)
         }
@@ -146,7 +135,7 @@ class TradeViewModel @Inject constructor(
                         error = mapErrorMessage(error)
                     )
                 }
-                sendUIEvent(UIEvent.ShowSnackBar(message = "Failed to load pending orders"))
+                sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error ?: ""))
             }
         )
     }
