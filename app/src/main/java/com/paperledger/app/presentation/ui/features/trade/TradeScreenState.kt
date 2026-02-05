@@ -20,6 +20,7 @@ data class PositionItem(
     val currentPrice: Double = 0.0,
     val pnl: Double = 0.0,
     val pnlPercent: Double = 0.0,
+    val qty: Double = 0.0
 )
 
 data class OrderItem(
@@ -30,5 +31,6 @@ data class OrderItem(
     val price: Double = 0.0,
     val stopLoss: Double? = null,
     val takeProfit: Double? = null,
-    val placementTime: String = ""
+    val placementTime: String = "",
+    val side: String = ""
 )

@@ -1,5 +1,6 @@
 package com.paperledger.app.data.repository
 
+import android.util.Log
 import com.google.gson.Gson
 import com.paperledger.app.core.AppError
 import com.paperledger.app.core.POLL_INTERVAL_MS
@@ -81,7 +82,7 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
      @OptIn(ExperimentalCoroutinesApi::class)
         override fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
             return flow {
-                while (currentCoroutineContext().isActive) {
+                while (true) {
                     try {
                         val response = alpacaApi.getAccountById(accountId)
 
@@ -100,6 +101,7 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
                                 return@flow
                             }
                             val accountInfo = body.toAccountInfo()
+                            Log.d("Balance", "${accountInfo.lastEquity}")
                             emit(Result.success(accountInfo))
                         }
 

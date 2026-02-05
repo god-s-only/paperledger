@@ -60,7 +60,7 @@ fun MainApp() {
             WatchlistScreen(navController = navController)
         }
         composable(Routes.TRADE_SCREEN) {
-            TradeScreen()
+            TradeScreen(navController = navController)
         }
 
     }

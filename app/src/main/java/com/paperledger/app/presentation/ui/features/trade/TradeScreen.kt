@@ -57,7 +57,6 @@ fun TradeScreen(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // 1. Account Parameters Header (Now White/Transparent)
             AccountMetricsHeader(state.value.balance.toString(), state.value.equity.toString(), state.value.margin.toString(), state.value.margin.toString())
 
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
@@ -66,7 +65,7 @@ fun TradeScreen(
                 // 2. Positions Section
                 item { SectionHeader("POSITIONS") }
                 items(state.value.positions) { position ->
-                    TradeItemRow(position)
+                    TradePositionRow(position)
                     HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.1f))
                 }
 
@@ -79,7 +78,7 @@ fun TradeScreen(
                 // 4. Pending Orders Section
                 item { SectionHeader("ORDERS") }
                 items(state.value.pendingOrders) { order ->
-                    TradeItemRow(order, isPending = true)
+                    TradeOrderRow(order)
                     HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.1f))
                 }
             }
@@ -119,7 +118,6 @@ fun MetricItem(label: String, value: String, highlight: Boolean = false) {
 
 @Composable
 fun SectionHeader(title: String) {
-    // Removed background color for a sleeker look
     Text(
         text = title,
         modifier = Modifier
@@ -127,13 +125,13 @@ fun SectionHeader(title: String) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.ExtraBold,
-        color = MT5_BLUE, // Using MT5 Blue for section titles to pop
+        color = MT5_BLUE,
         letterSpacing = 1.sp
     )
 }
 
 @Composable
-fun TradeItemRow(trade: TradeScreenState, isPending: Boolean = false) {
+fun TradePositionRow(trade: PositionItem) {
     val profitColor = if (trade.pnl.toString().startsWith("-")) MT5_DOWN else MT5_UP
 
     Row(
@@ -154,32 +152,23 @@ fun TradeItemRow(trade: TradeScreenState, isPending: Boolean = false) {
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
                 )
-                Text(", ${trade.lots}", style = MaterialTheme.typography.labelSmall)
+                Text(", ${trade.qty}", style = MaterialTheme.typography.labelSmall)
             }
             Text(
-                text = "${trade.openPrice} → ${trade.currentPrice}",
+                text = "${trade.entryPrice} → ${trade.currentPrice}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 fontFamily = FontFamily.Monospace
             )
         }
-
-        if (!isPending) {
-            Text(
-                text = trade.profit,
+         Text(
+                text = "${trade.pnl}",
                 color = profitColor,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 fontFamily = FontFamily.Monospace
             )
-        } else {
-            Text(
-                text = "PENDING",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray,
-                fontWeight = FontWeight.Bold
-            )
-        }
+
     }
 }
 
@@ -199,7 +188,7 @@ fun TradeOrderRow(trade: OrderItem) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = trade.type,
-                    color = if (trade.type.contains("Buy")) MT5_BLUE else MT5_DOWN,
+                    color = if (trade.side.contains("Buy")) MT5_BLUE else MT5_DOWN,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
                 )

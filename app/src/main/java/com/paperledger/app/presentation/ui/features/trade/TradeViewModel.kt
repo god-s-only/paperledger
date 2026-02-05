@@ -77,7 +77,8 @@ class TradeViewModel @Inject constructor(
                                     entryPrice = position.entryPrice,
                                     currentPrice = position.currentPrice,
                                     pnl = position.unrealizedPl,
-                                    pnlPercent = position.unrealizedPlPercent
+                                    pnlPercent = position.unrealizedPlPercent,
+                                    qty = position.quantity
                                 )
                             }
                         )
@@ -123,7 +124,8 @@ class TradeViewModel @Inject constructor(
                                 stopLoss = order.stopPrice,
                                 takeProfit = order.filledAvgPrice,
                                 quantity = order.quantity,
-                                placementTime = order.createdAt
+                                placementTime = order.createdAt,
+                                side = order.side.uppercase()
                             )
                         }
                     )
