@@ -61,7 +61,7 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getOpenPositions(accountId: String): Flow<Result<List<Position>>> {
         return flow {
-            while (true) {
+            while (currentCoroutineContext().isActive) {
                 try {
                     val response = alpacaApiService.getOpenPositions(accountId)
 

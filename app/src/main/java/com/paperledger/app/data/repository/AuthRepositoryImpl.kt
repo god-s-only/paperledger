@@ -82,7 +82,7 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
      @OptIn(ExperimentalCoroutinesApi::class)
         override fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
             return flow {
-                while (true) {
+                while (currentCoroutineContext().isActive) {
                     try {
                         val response = alpacaApi.getAccountById(accountId)
 
