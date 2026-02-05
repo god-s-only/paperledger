@@ -45,54 +45,48 @@ class TradeViewModel @Inject constructor(
 
     private fun startDataStreams(accountId: String) {
         viewModelScope.launch {
-            combine(
-                getAccountInfoUseCase.invoke(accountId),
-                getOpenPositionsUseCase.invoke(accountId)
-            ) { accountInfoResult, openPositionsResult ->
+            getAccountInfoUseCase.invoke(accountId).collectLatest { result ->
+                result.fold(
+                    onSuccess = { accountInfo ->
+                        _state.update {
+                            it.copy(
+                                balance = accountInfo.lastEquity,
+                                equity = accountInfo.lastEquity
+                            )
+                        }
+                    },
+                    onFailure = {
 
-                val accountInfoError = accountInfoResult.exceptionOrNull()
-                val openPositionsError = openPositionsResult.exceptionOrNull()
-
-                _state.update { current ->
-
-                    var newState = current.copy(
-                        isLoading = false,
-                        error = null
-                    )
-
-                    accountInfoResult.getOrNull()?.let { accountInfo ->
-                        newState = newState.copy(
-                            balance = accountInfo.lastEquity,
-                            equity = accountInfo.lastEquity
-                        )
                     }
+                )
+            }
 
-                    openPositionsResult.getOrNull()?.let { positions ->
-                        newState = newState.copy(
-                            positions = positions.map { position ->
-                                PositionItem(
-                                    symbol = position.symbol,
-                                    type = position.side.uppercase(),
-                                    volume = position.quantity,
-                                    entryPrice = position.entryPrice,
-                                    currentPrice = position.currentPrice,
-                                    pnl = position.unrealizedPl,
-                                    pnlPercent = position.unrealizedPlPercent,
-                                    qty = position.quantity
-                                )
-                            }
-                        )
+        }
+        viewModelScope.launch {
+            getOpenPositionsUseCase.invoke(accountId).collectLatest { result ->
+                result.fold(
+                    onSuccess = { positions ->
+                        _state.update {
+                            it.copy(
+                                positions = positions.map { position ->
+                                    PositionItem(
+                                        symbol = position.symbol,
+                                        type = position.side.uppercase(),
+                                        volume = position.quantity,
+                                        entryPrice = position.entryPrice,
+                                        currentPrice = position.currentPrice,
+                                        pnl = position.unrealizedPl,
+                                        pnlPercent = position.unrealizedPlPercent,
+                                        qty = position.quantity
+                                    )
+                                }
+                            )
+                        }
+                    },
+                    onFailure = {
+
                     }
-
-                    val error = accountInfoError ?: openPositionsError
-                    if (error != null) {
-                        newState = newState.copy(
-                            error = mapErrorMessage(error)
-                        )
-                    }
-
-                    newState
-                }
+                )
             }
         }
         viewModelScope.launch {
