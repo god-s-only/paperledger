@@ -45,13 +45,38 @@ class TradeViewModel @Inject constructor(
 
     private fun startDataStreams(accountId: String) {
         viewModelScope.launch {
-            getAccountInfoUseCase.invoke(accountId).collectLatest { result ->
+            getAccountInfoUseCase.invoke(accountId).fold(
+                onSuccess = { accountInfo ->
+                    _state.update {
+                        it.copy(
+                            balance = accountInfo.lastEquity,
+                            equity = accountInfo.lastEquity
+                        )
+                    }
+                },
+                onFailure = {
+
+                }
+            )
+        }
+        viewModelScope.launch {
+            getOpenPositionsUseCase.invoke(accountId).collectLatest { result ->
                 result.fold(
-                    onSuccess = { accountInfo ->
+                    onSuccess = { positions ->
                         _state.update {
                             it.copy(
-                                balance = accountInfo.lastEquity,
-                                equity = accountInfo.lastEquity
+                                positions = positions.map { position ->
+                                    PositionItem(
+                                        symbol = position.symbol,
+                                        type = position.side.uppercase(),
+                                        volume = position.quantity,
+                                        entryPrice = position.entryPrice,
+                                        currentPrice = position.currentPrice,
+                                        pnl = position.unrealizedPl,
+                                        pnlPercent = position.unrealizedPlPercent,
+                                        qty = position.quantity
+                                    )
+                                }
                             )
                         }
                     },
@@ -60,9 +85,7 @@ class TradeViewModel @Inject constructor(
                     }
                 )
             }
-
         }
-
         viewModelScope.launch {
             loadPendingOrders(accountId)
         }
