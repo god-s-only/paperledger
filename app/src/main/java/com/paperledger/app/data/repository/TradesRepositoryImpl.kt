@@ -8,7 +8,6 @@ import com.paperledger.app.core.mapError
 import com.paperledger.app.data.mappers.trade.toDomain
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
-import com.paperledger.app.domain.models.trade.AccountInfo
 import com.paperledger.app.domain.models.trade.Order
 import com.paperledger.app.domain.models.trade.Position
 import com.paperledger.app.domain.repository.TradesRepository
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -28,7 +26,6 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import okio.IOException
 import javax.inject.Inject
-import kotlin.coroutines.coroutineContext
 
 class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: AlpacaApiService) : TradesRepository {
 

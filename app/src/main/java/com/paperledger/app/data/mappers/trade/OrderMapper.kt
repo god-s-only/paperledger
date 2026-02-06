@@ -1,6 +1,5 @@
 package com.paperledger.app.data.mappers.trade
 
-import com.paperledger.app.data.remote.dto.pending_orders_get.GetPendingOrdersResponseDTOItem
 import com.paperledger.app.domain.models.trade.Order
 
 fun GetPendingOrdersResponseDTOItem.toDomain(): Order{
