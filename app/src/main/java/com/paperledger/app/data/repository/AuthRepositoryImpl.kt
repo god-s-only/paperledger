@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import okhttp3.Dispatcher
 import okio.IOException
 import org.json.JSONObject
 import retrofit2.HttpException
@@ -31,18 +32,21 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiService, private val paperLedgerSession: PaperLedgerSession): AuthRepository {
     override suspend fun createAccount(accountRequest: AccountRequestDTO): Result<String> {
-        return withContext(Dispatchers.IO){
+        return withContext(Dispatchers.IO) {
             try {
                 val response = alpacaApi.createAccount(accountRequest)
-                if(response.isSuccessful){
-                    val body = response.body() ?: return@withContext Result.failure(AppError.EmptyBody)
+                if (response.isSuccessful) {
+                    val body =
+                        response.body() ?: return@withContext Result.failure(AppError.EmptyBody)
                     Result.success(body.id)
-                }else{
-                    val errorBody = Gson().fromJson(response.errorBody()?.string(),
-                        ErrorResponseDTO::class.java)
+                } else {
+                    val errorBody = Gson().fromJson(
+                        response.errorBody()?.string(),
+                        ErrorResponseDTO::class.java
+                    )
                     Result.failure(AppError.HttpError(response.code(), errorBody.message))
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Result.failure(mapError(e))
             }
         }
@@ -52,16 +56,16 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
         accountId: String,
         accountRequest: AccountRequestDTO
     ): Result<Unit> {
-        return withContext(Dispatchers.IO){
+        return withContext(Dispatchers.IO) {
             try {
                 val res = alpacaApi.updateAccount(accountId, accountRequest)
-                if(res.isSuccessful){
+                if (res.isSuccessful) {
                     val body = res.body() ?: return@withContext Result.failure(AppError.EmptyBody)
                     Result.success(Unit)
-                }else{
+                } else {
                     Result.failure(AppError.HttpError(res.code(), res.message()))
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Result.failure(mapError(e))
             }
         }
@@ -71,7 +75,7 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
         return try {
             paperLedgerSession.storeUserId(userId)
             Result.success(Unit)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
@@ -79,45 +83,30 @@ class AuthRepositoryImpl @Inject constructor(private val alpacaApi: AlpacaApiSer
     override suspend fun getUserId(): String? {
         return paperLedgerSession.getUserId()
     }
-     @OptIn(ExperimentalCoroutinesApi::class)
-        override fun getAccountInfo(accountId: String): Flow<Result<AccountInfo>> {
-            return flow {
-                while (currentCoroutineContext().isActive) {
-                    try {
-                        val response = alpacaApi.getAccountById(accountId)
 
-                        if (!response.isSuccessful) {
-                            val errorMessage = response.errorBody()?.string()?.let {
-                                try {
-                                    JSONObject(it).getString("message")
-                                } catch (e: Exception) {
-                                    "Error fetching account info"
-                                }
-                            } ?: "Error fetching account info"
-                            emit(Result.failure(AppError.HttpError(response.code(), errorMessage)))
-                        } else {
-                            val body = response.body() ?: run {
-                                emit(Result.failure(AppError.EmptyBody))
-                                return@flow
-                            }
-                            val accountInfo = body.toAccountInfo()
-                            Log.d("Balance", "${accountInfo.lastEquity}")
-                            emit(Result.success(accountInfo))
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun getAccountInfo(accountId: String): Result<AccountInfo> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = alpacaApi.getAccountById(accountId)
+                if (!response.isSuccessful) {
+                    val errorMessage = response.errorBody()?.string()?.let {
+                        try {
+                            JSONObject(it).getString("message")
+                        } catch (e: Exception) {
+                            "Error fetching account info"
                         }
-
-                        delay(POLL_INTERVAL_MS)
-                    } catch (e: Exception) {
-                        emit(Result.failure(mapError(e)))
-                        delay(POLL_INTERVAL_MS)
-                    }
+                    } ?: "Error fetching account info"
+                    Result.failure(AppError.HttpError(response.code(), errorMessage))
+                } else {
+                    val body = response.body() ?: return@withContext Result.failure(AppError.EmptyBody)
+                    val accountInfo = body.toAccountInfo()
+                    Log.d("Balance", "${accountInfo.lastEquity}")
+                    Result.success(accountInfo)
                 }
+            } catch (e: Exception) {
+                Result.failure(mapError(e))
             }
-                .retry(3) { cause -> cause is IOException }
-                .catch { e ->
-                    e.printStackTrace()
-                    emit(Result.failure(mapError(e)))
-                }
-                .flowOn(Dispatchers.IO)
-                .distinctUntilChanged()
         }
     }
+}

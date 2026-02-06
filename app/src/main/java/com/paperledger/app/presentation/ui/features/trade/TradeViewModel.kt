@@ -66,34 +66,6 @@ class TradeViewModel @Inject constructor(
         viewModelScope.launch {
             loadPendingOrders(accountId)
         }
-
-        viewModelScope.launch {
-            getOpenPositionsUseCase.invoke(accountId).collectLatest { result ->
-                result.fold(
-                    onSuccess = { positions ->
-                        _state.update {
-                            it.copy(
-                                positions = positions.map { position ->
-                                    PositionItem(
-                                        symbol = position.symbol,
-                                        type = position.side.uppercase(),
-                                        volume = position.quantity,
-                                        entryPrice = position.entryPrice,
-                                        currentPrice = position.currentPrice,
-                                        pnl = position.unrealizedPl,
-                                        pnlPercent = position.unrealizedPlPercent,
-                                        qty = position.quantity
-                                    )
-                                }
-                            )
-                        }
-                    },
-                    onFailure = {
-
-                    }
-                )
-            }
-        }
     }
 
     private suspend fun loadPendingOrders(accountId: String) {
