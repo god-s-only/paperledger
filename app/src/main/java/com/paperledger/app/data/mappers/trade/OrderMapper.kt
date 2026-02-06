@@ -16,14 +16,12 @@ fun GetPendingOrdersResponseDTOItem.toDomain(): Order{
         createdAt = createdAt,
         updatedAt = updatedAt,
         submittedAt = submittedAt,
-        filledAt = filledAt,
-        expiredAt = expiredAt,
-        canceledAt = canceledAt,
+        filledAt = filledAt.toString(),
+        expiredAt = expiredAt.toString(),
+        canceledAt = canceledAt.toString(),
         quantity = qty.toDouble(),
         filledQty = filledQty.toDouble(),
         limitPrice = limitPrice.toDouble(),
-        stopPrice = stopPrice.toDouble(),
-        filledAvgPrice = filledAvgPrice.toDouble(),
         commission = commission.toDouble(),
         assetClass = assetClass
     )

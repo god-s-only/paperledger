@@ -62,6 +62,11 @@ class TradeViewModel @Inject constructor(
             }
 
         }
+
+        viewModelScope.launch {
+            loadPendingOrders(accountId)
+        }
+
         viewModelScope.launch {
             getOpenPositionsUseCase.invoke(accountId).collectLatest { result ->
                 result.fold(
@@ -89,9 +94,6 @@ class TradeViewModel @Inject constructor(
                 )
             }
         }
-        viewModelScope.launch {
-            loadPendingOrders(accountId)
-        }
     }
 
     private suspend fun loadPendingOrders(accountId: String) {
@@ -114,9 +116,7 @@ class TradeViewModel @Inject constructor(
                                     else -> order.type.uppercase()
                                 },
                                 volume = order.quantity,
-                                price = order.limitPrice ?: order.stopPrice ?: 0.0,
-                                stopLoss = order.stopPrice,
-                                takeProfit = order.filledAvgPrice,
+                                price = order.limitPrice ?: 0.0,
                                 quantity = order.quantity,
                                 placementTime = order.createdAt,
                                 side = order.side.uppercase()

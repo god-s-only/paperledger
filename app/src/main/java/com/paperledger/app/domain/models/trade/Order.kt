@@ -18,8 +18,6 @@ data class Order(
     val quantity: Double,
     val filledQty: Double,
     val limitPrice: Double?,
-    val stopPrice: Double?,
-    val filledAvgPrice: Double?,
     val commission: Double,
     val assetClass: String
 )
