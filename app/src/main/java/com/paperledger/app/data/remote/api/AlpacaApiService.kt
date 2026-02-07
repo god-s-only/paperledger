@@ -9,6 +9,8 @@ import com.paperledger.app.data.remote.dto.assets.AssetsResponseDTO
 import com.paperledger.app.data.remote.dto.funding.request.FundingRequestDTO
 import com.paperledger.app.data.remote.dto.funding.response.success.FundingResponseDTO
 import com.paperledger.app.data.remote.dto.open_positions_get.GetOpenPositionResponseDTO
+import com.paperledger.app.data.remote.dto.pending_order_post.OrderRequestDTO
+import com.paperledger.app.data.remote.dto.pending_order_post.OrderResponseDTO
 import com.paperledger.app.data.remote.dto.pending_orders_get.GetPendingOrdersResponseDTO
 import com.paperledger.app.data.remote.dto.watchlists_get.GetWatchlistsDTO
 import com.paperledger.app.data.remote.dto.watchlists_post.PostWatchlistRequestDTO
@@ -83,4 +85,10 @@ interface AlpacaApiService {
     suspend fun getAccountById(
         @Path("account_id") accountId: String
     ): Response<AccountResponseDTO>
+
+    @POST("/v1/trading/accounts/{account_id}/orders")
+    suspend fun createPendingOrder(
+        @Path("account_id") accountId: String,
+        @Body  orderRequest: OrderRequestDTO
+    ): Response<OrderResponseDTO>
 }

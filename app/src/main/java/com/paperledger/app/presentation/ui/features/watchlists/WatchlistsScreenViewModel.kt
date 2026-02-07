@@ -64,6 +64,7 @@ class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUse
                                 error = mapErrorMessage(exception)
                             )
                         }
+                        sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.message))
                     }
                 )
             }

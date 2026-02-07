@@ -94,7 +94,7 @@ fun WatchlistScreen(
         ) {
 
             // Priority 1: Error or Empty Message (Centered)
-            if (state.message.isNotEmpty() || state.error != null) {
+            if (state.message.isNotEmpty()) {
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -102,20 +102,11 @@ fun WatchlistScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = state.error ?: state.message,
+                        text = state.message,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = if (state.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (state.error != null) {
-                        Button(
-                            onClick = { viewModel.getWatchlists() },
-                            modifier = Modifier.padding(top = 16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MT5_BLUE)
-                        ) {
-                            Text("Retry")
-                        }
-                    }
                 }
             }
 
