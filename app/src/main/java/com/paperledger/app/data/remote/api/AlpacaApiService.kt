@@ -12,11 +12,15 @@ import com.paperledger.app.data.remote.dto.open_positions_get.GetOpenPositionRes
 import com.paperledger.app.data.remote.dto.pending_order_post.OrderRequestDTO
 import com.paperledger.app.data.remote.dto.pending_order_post.OrderResponseDTO
 import com.paperledger.app.data.remote.dto.pending_orders_get.GetPendingOrdersResponseDTO
+import com.paperledger.app.data.remote.dto.position_delete.DeletePositionResponseDTO
+import com.paperledger.app.data.remote.dto.position_order_post.PositionRequestDTO
+import com.paperledger.app.data.remote.dto.position_order_post.PositionResponseDTO
 import com.paperledger.app.data.remote.dto.watchlists_get.GetWatchlistsDTO
 import com.paperledger.app.data.remote.dto.watchlists_post.PostWatchlistRequestDTO
 import com.paperledger.app.data.remote.dto.watchlists_post.PostWatchlistResponseDTO
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -91,4 +95,16 @@ interface AlpacaApiService {
         @Path("account_id") accountId: String,
         @Body  orderRequest: OrderRequestDTO
     ): Response<OrderResponseDTO>
+
+    @DELETE("/v1/trading/accounts/{account_id}/positions/{symbol_or_asset_id}")
+    suspend fun closePosition(
+        @Path("account_id") accountId: String,
+        @Path("symbol_or_asset_id") symbolOrAssetId: String
+    ): Response<DeletePositionResponseDTO>
+
+    @POST("/v1/trading/accounts/{account_id}/orders")
+    suspend fun createPositionOrder(
+        @Path("account_id") accountId: String,
+        @Body positionRequest: PositionRequestDTO
+    ): Response<PositionResponseDTO>
 }
