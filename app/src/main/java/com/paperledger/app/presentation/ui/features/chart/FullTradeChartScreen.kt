@@ -21,31 +21,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 
-val MT5_BLUE = Color(0xFF2196F3)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullTradeChartScreen(
     initialSymbol: String = "BINANCE:BTCUSDT",
     onBackClick: () -> Unit = {},
-    onTradeClick: (String) -> Unit = {}
+    onTradeClick: () -> Unit = {}
 ) {
-    var currentSymbol by remember { mutableStateOf(initialSymbol) }
     var isDarkMode by remember { mutableStateOf(true) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = currentSymbol.split(":").lastOrNull() ?: currentSymbol,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text("Live Market Feed", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                    }
-                },
+                title = { Text("Chart", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, "Back") }
                 },
@@ -64,55 +52,25 @@ fun FullTradeChartScreen(
                 .background(if (isDarkMode) Color.Black else Color.White)
         ) {
             TradingViewWebView(
-                symbol = currentSymbol,
+                symbol = initialSymbol,
                 isDarkMode = isDarkMode
             )
 
             FloatingActionButton(
-                onClick = { onTradeClick(currentSymbol) },
-                containerColor = MT5_BLUE.copy(alpha = 0.9f),
+                onClick = onTradeClick,
+                containerColor = Color(0xFF2196F3).copy(alpha = 0.95f),
                 contentColor = Color.White,
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .padding(16.dp)
-                    .size(width = 140.dp, height = 48.dp)
-                    .align(Alignment.TopEnd)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("NEW ORDER", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold)
-                }
-            }
-
-            Surface(
-                tonalElevation = 8.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
+                    .width(150.dp)
+                    .height(50.dp)
                     .align(Alignment.BottomCenter)
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val pairs = listOf("BINANCE:BTCUSDT", "FX:EURUSD", "OANDA:XAUUSD", "NASDAQ:NVDA")
-                    pairs.forEach { pair ->
-                        val ticker = pair.split(":").last()
-                        Button(
-                            onClick = { currentSymbol = pair },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(4.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (currentSymbol == pair) MT5_BLUE else Color.Gray.copy(alpha = 0.1f),
-                                contentColor = if (currentSymbol == pair) Color.White else MaterialTheme.colorScheme.onSurface
-                            )
-                        ) {
-                            Text(ticker, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("NEW ORDER", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                 }
             }
         }
@@ -128,17 +86,34 @@ fun TradingViewWebView(
     val theme = if (isDarkMode) "dark" else "light"
     val htmlData = remember(symbol, isDarkMode) {
         """
+        <!DOCTYPE html>
         <html>
-            <head><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-            <style>body { margin: 0; padding: 0; background-color: ${if (isDarkMode) "#000000" else "#FFFFFF"}; }</style></head>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                <style>
+                    body { margin: 0; padding: 0; background-color: ${if (isDarkMode) "#000000" else "#FFFFFF"}; }
+                    #tv_container { height: 100vh; width: 100vw; }
+                </style>
+            </head>
             <body>
-                <div id="tv_chart" style="height:100vh; width:100vw;"></div>
+                <div id="tv_container"></div>
                 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
                 <script type="text/javascript">
                 new TradingView.widget({
-                    "autosize": true, "symbol": "$symbol", "interval": "H1", "theme": "$theme",
-                    "style": "1", "locale": "en", "enable_publishing": false,
-                    "hide_top_toolbar": false, "save_image": false, "container_id": "tv_chart"
+                    "autosize": true,
+                    "symbol": "$symbol",
+                    "interval": "D",
+                    "timezone": "Etc/UTC",
+                    "theme": "$theme",
+                    "style": "1",
+                    "locale": "en",
+                    "enable_publishing": false,
+                    "allow_symbol_change": true, // ENABLES SYMBOL SEARCH
+                    "hide_top_toolbar": false,   // SHOWS THE TOOLBAR WITH SYMBOL NAME
+                    "hide_side_toolbar": false,  // SHOWS DRAWING TOOLS
+                    "withdateranges": true,
+                    "save_image": false,
+                    "container_id": "tv_container"
                 });
                 </script>
             </body>
@@ -154,13 +129,15 @@ fun TradingViewWebView(
                 settings.apply {
                     javaScriptEnabled = true
                     domStorageEnabled = true
-                    setSupportZoom(true)
+                    loadWithOverviewMode = true
+                    useWideViewPort = true
                 }
                 webViewClient = WebViewClient()
-                setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
                 loadDataWithBaseURL("https://s3.tradingview.com", htmlData, "text/html", "UTF-8", null)
             }
         },
-        update = { it.loadDataWithBaseURL("https://s3.tradingview.com", htmlData, "text/html", "UTF-8", null) }
+        update = { webView ->
+            webView.loadDataWithBaseURL("https://s3.tradingview.com", htmlData, "text/html", "UTF-8", null)
+        }
     )
 }
