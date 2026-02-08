@@ -33,9 +33,8 @@ fun ChartScreen() {
                     IconButton(
                         onClick = { theme = if (theme == "dark") "light" else "dark" }
                     ) {
-                        // Will change icon later
                         Icon(
-                            imageVector = if (theme == "dark") Icons.Default.Settings else Icons.Default.Settings,
+                            imageVector = if (theme == "dark") Icons.Default.LightMode else Icons.Default.DarkMode,
                             contentDescription = "Toggle theme"
                         )
                     }
