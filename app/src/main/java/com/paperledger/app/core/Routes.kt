@@ -10,5 +10,6 @@ object Routes {
     const val WATCHLISTS_SCREEN = "watchlists_screen"
     const val TRADE_SCREEN = "trade_screen"
     const val PLACE_TRADE_SCREEN = "place_trade_screen"
+    const val CHART_SCREEN = "chart_screen"
 
 }

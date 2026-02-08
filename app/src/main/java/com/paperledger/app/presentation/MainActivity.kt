@@ -1,5 +1,6 @@
 package com.paperledger.app.presentation
 
+import ChartScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -43,7 +44,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-    NavHost(navController, startDestination = Routes.TRADE_SCREEN){
+    NavHost(navController, startDestination = Routes.CHART_SCREEN){
         composable(Routes.SIGN_UP) {
             SignUpScreen(navController = navController)
         }
@@ -61,6 +62,9 @@ fun MainApp() {
         }
         composable(Routes.TRADE_SCREEN) {
             TradeScreen(navController = navController)
+        }
+        composable(Routes.CHART_SCREEN) {
+            ChartScreen()
         }
 
     }

@@ -52,10 +52,6 @@ fun ChartScreen() {
                 .padding(paddingValues)
         ) {
             // Interval selector
-            IntervalSelector(
-                selectedInterval = interval,
-                onIntervalChange = { interval = it }
-            )
 
             // TradingView Chart
             TradingViewChart(
@@ -63,8 +59,7 @@ fun ChartScreen() {
                 interval = interval,
                 theme = theme,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                    .fillMaxSize()
             )
         }
     }
