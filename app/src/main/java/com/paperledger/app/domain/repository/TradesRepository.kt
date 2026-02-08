@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface TradesRepository {
     suspend fun getPendingOrders(accountId: String): Result<List<Order>>
     fun getOpenPositions(accountId: String): Flow<Result<List<Position>>>
-    suspend fun createPendingOrder(orderRequest: OrderRequestDTO): Result<Unit>
-    suspend fun createPositionOrder(positionRequest: PositionRequestDTO): Result<Unit>
-    suspend fun closePosition(accountId: String, symbolOrAssetIf: String): Result<Unit>
+    suspend fun createPendingOrder(accountId: String, orderRequest: OrderRequestDTO): Result<Unit>
+    suspend fun createPositionOrder(accountId: String, positionRequest: PositionRequestDTO): Result<Unit>
+    suspend fun closePosition(accountId: String, symbolOrAssetId: String): Result<Unit>
 }

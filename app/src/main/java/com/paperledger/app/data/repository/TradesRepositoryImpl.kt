@@ -88,18 +88,72 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
             .distinctUntilChanged()
     }
 
-    override suspend fun createPendingOrder(orderRequest: OrderRequestDTO): Result<Unit> {
-        TODO("Not yet implemented")
+    override suspend fun createPendingOrder(accountId: String, orderRequest: OrderRequestDTO): Result<Unit> {
+        return withContext(Dispatchers.IO){
+            try {
+                val res = alpacaApiService.createPendingOrder(accountId, orderRequest)
+                if(!res.isSuccessful){
+                    val errorMessage = res.errorBody()?.string()?.let {
+                        try {
+                            JSONObject(it).getString("message")
+                        }catch (e: Exception){
+                            "Error creating pending order"
+                        }
+                    } ?: "Error creating pending order"
+                    Result.failure(AppError.HttpError(res.code(), errorMessage))
+                }else{
+                    Result.success(Unit)
+                }
+            }catch (e: Exception){
+                Result.failure(mapError(e))
+            }
+        }
     }
 
-    override suspend fun createPositionOrder(positionRequest: PositionRequestDTO): Result<Unit> {
-        TODO("Not yet implemented")
+    override suspend fun createPositionOrder(accountId: String, positionRequest: PositionRequestDTO): Result<Unit> {
+        return withContext(Dispatchers.IO){
+            try {
+                val res = alpacaApiService.createPositionOrder(accountId, positionRequest)
+                if(!res.isSuccessful){
+                    val errorMessage = res.errorBody()?.string()?.let {
+                        try {
+                            JSONObject(it).getString("message")
+                        }catch (e: Exception){
+                            "Error creating position order"
+                        }
+                    } ?: "Error creating position order"
+                    Result.failure(AppError.HttpError(res.code(), errorMessage))
+                }else{
+                    Result.success(Unit)
+                }
+            }catch (e: Exception){
+                Result.failure(mapError(e))
+            }
+        }
     }
 
     override suspend fun closePosition(
         accountId: String,
-        symbolOrAssetIf: String
+        symbolOrAssetId: String
     ): Result<Unit> {
-        TODO("Not yet implemented")
+        return withContext(Dispatchers.IO){
+            try {
+                val res = alpacaApiService.closePosition(accountId, symbolOrAssetId)
+                if(!res.isSuccessful){
+                    val errorMessage = res.errorBody()?.string()?.let {
+                        try {
+                            JSONObject(it).getString("message")
+                        }catch (e: Exception){
+                            "Error closing position"
+                        }
+                    } ?: "Error closing position"
+                    Result.failure(AppError.HttpError(res.code(), errorMessage))
+                }else{
+                    Result.success(Unit)
+                }
+            }catch (e: Exception){
+                Result.failure(mapError(e))
+            }
+        }
     }
 }
