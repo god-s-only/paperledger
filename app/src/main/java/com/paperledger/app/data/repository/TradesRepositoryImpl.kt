@@ -8,6 +8,8 @@ import com.paperledger.app.core.mapError
 import com.paperledger.app.data.mappers.trade.toDomain
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
+import com.paperledger.app.data.remote.dto.pending_order_post.OrderRequestDTO
+import com.paperledger.app.data.remote.dto.position_order_post.PositionRequestDTO
 import com.paperledger.app.domain.models.trade.Order
 import com.paperledger.app.domain.models.trade.Position
 import com.paperledger.app.domain.repository.TradesRepository
@@ -84,5 +86,20 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
             }
             .flowOn(Dispatchers.IO)
             .distinctUntilChanged()
+    }
+
+    override suspend fun createPendingOrder(orderRequest: OrderRequestDTO): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun createPositionOrder(positionRequest: PositionRequestDTO): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun closePosition(
+        accountId: String,
+        symbolOrAssetIf: String
+    ): Result<Unit> {
+        TODO("Not yet implemented")
     }
 }
