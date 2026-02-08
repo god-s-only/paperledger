@@ -1,6 +1,5 @@
 package com.paperledger.app.presentation
 
-import ChartScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,6 +17,7 @@ import com.paperledger.app.presentation.theme.PaperLedgerTheme
 import com.paperledger.app.presentation.ui.features.ach_relationships.ACHRelationShipScreen
 import com.paperledger.app.presentation.ui.features.assets.AssetsScreen
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
+import com.paperledger.app.presentation.ui.features.chart.FullTradeChartScreen
 import com.paperledger.app.presentation.ui.features.funding.FundingScreen
 import com.paperledger.app.presentation.ui.features.trade.TradeScreen
 import com.paperledger.app.presentation.ui.features.watchlists.WatchlistScreen
@@ -64,7 +64,7 @@ fun MainApp() {
             TradeScreen(navController = navController)
         }
         composable(Routes.CHART_SCREEN) {
-            ChartScreen()
+            FullTradeChartScreen()
         }
 
     }
