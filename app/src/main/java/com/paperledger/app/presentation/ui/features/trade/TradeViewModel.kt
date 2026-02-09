@@ -64,6 +64,7 @@ class TradeViewModel @Inject constructor(
                     onSuccess = { positions ->
                         val positionItems = positions.map { position ->
                             PositionItem(
+                                id = position.id,
                                 symbol = position.symbol,
                                 type = position.side.uppercase(),
                                 volume = position.quantity,
@@ -106,6 +107,7 @@ class TradeViewModel @Inject constructor(
                         isLoading = false,
                         pendingOrders = orders.map { order ->
                             OrderItem(
+                                id = order.id,
                                 symbol = order.symbol,
                                 type = when (order.type) {
                                     "market" -> "MARKET"

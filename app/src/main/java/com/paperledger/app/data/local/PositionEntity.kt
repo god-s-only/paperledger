@@ -1,6 +1,11 @@
-package com.paperledger.app.domain.models.trade
+package com.paperledger.app.data.local
 
-data class Position(
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "positions")
+data class PositionEntity(
+    @PrimaryKey(autoGenerate = false)
     val id: String = "",
     val symbol: String,
     val quantity: Double,

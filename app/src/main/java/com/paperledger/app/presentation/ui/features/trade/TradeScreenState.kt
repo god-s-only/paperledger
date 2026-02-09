@@ -13,6 +13,7 @@ data class TradeScreenState(
 )
 
 data class PositionItem(
+    val id: String = "",
     val symbol: String = "",
     val type: String = "",
     val volume: Double = 0.0,
@@ -24,6 +25,7 @@ data class PositionItem(
 )
 
 data class OrderItem(
+    val id: String = "",
     val symbol: String = "",
     val type: String = "",
     val quantity: Double = 0.0,
