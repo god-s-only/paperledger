@@ -24,4 +24,19 @@ interface PaperledgerDAO {
         deleteAllWatchlists()
         insertWatchlist(watchlistsEntity)
     }
+
+    @Insert
+    suspend fun insertPosition(positionEntity: List<PositionEntity>)
+
+    @Query("DELETE FROM positions")
+    suspend fun deleteAllPositions()
+
+    @Query("SELECT * FROM positions")
+    fun observeAllPositions(): Flow<List<PositionEntity>>
+
+    @Transaction
+    suspend fun replaceAllPositions(positionEntity: List<PositionEntity>){
+        insertPosition(positionEntity)
+        deleteAllPositions()
+    }
 }

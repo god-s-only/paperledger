@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.paperledger.app.core.AppError
 import com.paperledger.app.core.POLL_INTERVAL_MS
 import com.paperledger.app.core.mapError
+import com.paperledger.app.data.local.PaperledgerDAO
 import com.paperledger.app.data.mappers.trade.toDomain
 import com.paperledger.app.data.remote.api.AlpacaApiService
 import com.paperledger.app.data.remote.dto.error.ErrorResponseDTO
@@ -29,7 +30,7 @@ import org.json.JSONObject
 import okio.IOException
 import javax.inject.Inject
 
-class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: AlpacaApiService) : TradesRepository {
+class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: AlpacaApiService, private dao: PaperledgerDAO) : TradesRepository {
 
     override suspend fun getPendingOrders(accountId: String): Result<List<Order>> {
         return withContext(Dispatchers.IO) {
@@ -49,6 +50,7 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getOpenPositions(accountId: String): Flow<Result<List<Position>>> {
+
         return flow {
             while (currentCoroutineContext().isActive) {
                 try {
