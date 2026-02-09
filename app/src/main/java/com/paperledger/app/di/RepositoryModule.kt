@@ -60,7 +60,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideTradesRepository(alpacaApi: AlpacaApiService): TradesRepository {
-        return TradesRepositoryImpl(alpacaApi)
+    fun provideTradesRepository(alpacaApi: AlpacaApiService, db: PaperledgerDatabase): TradesRepository {
+        return TradesRepositoryImpl(alpacaApi, db.paperledgerDao())
     }
 }

@@ -4,8 +4,9 @@ import com.paperledger.app.data.local.PositionEntity
 import com.paperledger.app.data.remote.dto.open_positions_get.GetOpenPositionResponseDTOItem
 import com.paperledger.app.domain.models.trade.Position
 
-fun GetOpenPositionResponseDTOItem.toDomain(): Position{
-    return Position(
+fun GetOpenPositionResponseDTOItem.toEntity(): PositionEntity{
+    return PositionEntity(
+        id = assetId,
         symbol = symbol,
         quantity = qty.toDouble(),
         side = side,
@@ -21,8 +22,28 @@ fun GetOpenPositionResponseDTOItem.toDomain(): Position{
         assetClass = assetClass
     )
 }
-fun GetOpenPositionResponseDTOItem.toEntity(): PositionEntity{
-    return PositionEntity(
+fun PositionEntity.toDomain(): Position{
+    return Position(
+        id = id,
+        symbol = symbol,
+        quantity = quantity,
+        side = side,
+        entryPrice = entryPrice,
+        currentPrice = currentPrice,
+        marketValue = marketValue,
+        costBasis = costBasis,
+        unrealizedPl = unrealizedPl,
+        unrealizedPlPercent = unrealizedPlPercent,
+        unrealizedIntradayPl = unrealizedIntradayPl,
+        unrealizedIntradayPlPercent = unrealizedIntradayPlPercent,
+        exchange = exchange,
+        assetClass = assetClass
+    )
+}
+
+fun GetOpenPositionResponseDTOItem.toDomain(): Position{
+    return Position(
+        id = assetId,
         symbol = symbol,
         quantity = qty.toDouble(),
         side = side,

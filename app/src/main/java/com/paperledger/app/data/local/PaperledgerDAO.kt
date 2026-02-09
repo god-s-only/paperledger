@@ -36,7 +36,7 @@ interface PaperledgerDAO {
 
     @Transaction
     suspend fun replaceAllPositions(positionEntity: List<PositionEntity>){
-        insertPosition(positionEntity)
         deleteAllPositions()
+        insertPosition(positionEntity)
     }
 }
