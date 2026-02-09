@@ -38,7 +38,7 @@ fun TradeScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(text = if (state.value.positions.isNotEmpty()) state.value.pnl.toString() else "Trade" , style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = if(state.value.pnl < 0) MT5_UP else MT5_DOWN)
+                    Text(text = if (state.value.positions.isNotEmpty()) state.value.pnl.toString() else "Trade" , style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = if(state.value.pnl < 0) MT5_DOWN else MT5_UP)
                 },
                 actions = {
                     IconButton(onClick = {}) {
@@ -148,7 +148,7 @@ fun TradePositionRow(trade: PositionItem) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = trade.type,
-                    color = if (trade.type.contains("Buy")) MT5_BLUE else MT5_DOWN,
+                    color = if (trade.type.contains("LONG")) MT5_BLUE else MT5_DOWN,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -188,12 +188,18 @@ fun TradeOrderRow(trade: OrderItem) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = trade.type,
-                    color = if (trade.side.contains("Buy")) MT5_BLUE else MT5_DOWN,
+                    color = if (trade.side.contains("buy")) MT5_BLUE else MT5_DOWN,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Text(", ${trade.quantity}", style = MaterialTheme.typography.labelSmall)
             }
+            Text(
+                text = "${trade.price}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                fontFamily = FontFamily.Monospace
+            )
         }
             Text(
                 text = "PENDING",

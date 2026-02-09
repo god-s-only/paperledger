@@ -49,7 +49,6 @@ class TradeViewModel @Inject constructor(
                 onSuccess = { accountInfo ->
                     _state.update {
                         it.copy(
-                            balance = accountInfo.lastEquity,
                             equity = accountInfo.lastEquity
                         )
                     }
@@ -63,21 +62,26 @@ class TradeViewModel @Inject constructor(
             getOpenPositionsUseCase.invoke(accountId).collectLatest { result ->
                 result.fold(
                     onSuccess = { positions ->
+                        val positionItems = positions.map { position ->
+                            PositionItem(
+                                symbol = position.symbol,
+                                type = position.side.uppercase(),
+                                volume = position.quantity,
+                                entryPrice = position.entryPrice,
+                                currentPrice = position.currentPrice,
+                                pnl = position.unrealizedPl,
+                                pnlPercent = position.unrealizedPlPercent,
+                                qty = position.quantity
+                            )
+                        }
+
+                        val totalPnl = positionItems.sumOf { it.pnl }
+
                         _state.update {
                             it.copy(
-                                positions = positions.map { position ->
-                                    PositionItem(
-                                        symbol = position.symbol,
-                                        type = position.side.uppercase(),
-                                        volume = position.quantity,
-                                        entryPrice = position.entryPrice,
-                                        currentPrice = position.currentPrice,
-                                        pnl = position.unrealizedPl,
-                                        pnlPercent = position.unrealizedPlPercent,
-                                        qty = position.quantity
-                                    )
-                                },
-                                pnl = if(!positions.isEmpty()) it.positions.sumOf { item -> item.pnl } else 0.0
+                                positions = positionItems,
+                                pnl = totalPnl,
+                                balance = totalPnl + it.equity
                             )
                         }
                     },
@@ -115,7 +119,7 @@ class TradeViewModel @Inject constructor(
                                 price = order.limitPrice ?: 0.0,
                                 quantity = order.quantity,
                                 placementTime = order.createdAt,
-                                side = order.side.uppercase()
+                                side = order.side
                             )
                         }
                     )
