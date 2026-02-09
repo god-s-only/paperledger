@@ -38,7 +38,7 @@ fun TradeScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("TRADE", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(text = if (state.value.positions.isNotEmpty()) state.value.pnl.toString() else "Trade" , style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = if(state.value.pnl < 0) MT5_UP else MT5_DOWN)
                 },
                 actions = {
                     IconButton(onClick = {}) {

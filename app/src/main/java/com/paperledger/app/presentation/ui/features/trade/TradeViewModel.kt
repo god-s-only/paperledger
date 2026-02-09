@@ -76,7 +76,8 @@ class TradeViewModel @Inject constructor(
                                         pnlPercent = position.unrealizedPlPercent,
                                         qty = position.quantity
                                     )
-                                }
+                                },
+                                pnl = if(!positions.isEmpty()) it.positions.sumOf { item -> item.pnl } else 0.0
                             )
                         }
                     },

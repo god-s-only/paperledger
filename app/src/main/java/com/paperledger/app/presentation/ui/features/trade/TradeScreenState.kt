@@ -6,7 +6,7 @@ data class TradeScreenState(
     val freeMargin: Double = 0.0,
     val equity: Double = 0.0,
     val margin: Double = 0.0,
-    val pnl: Double = 0.0,
+    var pnl: Double = 0.0,
     val error: String? = null,
     val positions: List<PositionItem> = emptyList(),
     val pendingOrders: List<OrderItem> = emptyList()
