@@ -25,7 +25,6 @@ interface PaperledgerDAO {
         insertWatchlist(watchlistsEntity)
     }
 
-    @Insert
     suspend fun insertPosition(positionEntity: List<PositionEntity>)
 
     @Query("DELETE FROM positions")

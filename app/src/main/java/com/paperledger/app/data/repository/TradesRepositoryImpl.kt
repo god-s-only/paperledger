@@ -148,11 +148,12 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
 
     override suspend fun closePosition(
         accountId: String,
-        symbolOrAssetId: String
+        symbolOrAssetId: String,
+        qty: Double
     ): Result<Unit> {
         return withContext(Dispatchers.IO){
             try {
-                val res = alpacaApiService.closePosition(accountId, symbolOrAssetId)
+                val res = alpacaApiService.closePosition(accountId, symbolOrAssetId, qty)
                 if(!res.isSuccessful){
                     val errorMessage = res.errorBody()?.string()?.let {
                         try {

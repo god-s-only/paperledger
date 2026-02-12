@@ -12,5 +12,5 @@ interface TradesRepository {
     fun getOpenPositions(accountId: String): Flow<Result<List<Position>>>
     suspend fun createPendingOrder(accountId: String, orderRequest: OrderRequestDTO): Result<Unit>
     suspend fun createPositionOrder(accountId: String, positionRequest: PositionRequestDTO): Result<Unit>
-    suspend fun closePosition(accountId: String, symbolOrAssetId: String): Result<Unit>
+    suspend fun closePosition(accountId: String, symbolOrAssetId: String, qty: Double): Result<Unit>
 }
