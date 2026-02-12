@@ -8,6 +8,7 @@ import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.domain.models.trade.Position
 import com.paperledger.app.domain.usecase.auth.GetAccountInfoUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
+import com.paperledger.app.domain.usecase.trade.CloseOpenPositionUseCase
 import com.paperledger.app.domain.usecase.trade.GetOpenPositionsUseCase
 import com.paperledger.app.domain.usecase.trade.GetPendingOrdersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +27,8 @@ class TradeViewModel @Inject constructor(
     private val getOpenPositionsUseCase: GetOpenPositionsUseCase,
     private val getPendingOrdersUseCase: GetPendingOrdersUseCase,
     private val getAccountInfoUseCase: GetAccountInfoUseCase,
-    private val getUserIdUseCase: GetUserIdUseCase
+    private val getUserIdUseCase: GetUserIdUseCase,
+    private val closeOpenPositionUseCase: CloseOpenPositionUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow(TradeScreenState())
     val state = _state.asStateFlow()
@@ -151,6 +153,21 @@ class TradeViewModel @Inject constructor(
             }
             TradeScreenEvent.OnPlaceTradeClick -> {
                 sendUIEvent(UIEvent.Navigate(Routes.PLACE_TRADE_SCREEN))
+            }
+            is TradeScreenEvent.OnCloseOpenPositionClick -> {
+                viewModelScope.launch {
+                    closeOpenPositionUseCase.invoke(accountId = getUserIdUseCase() ?: "", symbolOrAssetId = event.symbolOrAssetId, qty = event.qty).fold(
+                        onSuccess = {
+                            sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed ${event.qty} worth of open position"))
+                        },
+                        onFailure = { e ->
+                            sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))
+                        }
+                    )
+                }
+            }
+            is TradeScreenEvent.OnPositionClick -> {
+
             }
         }
     }
