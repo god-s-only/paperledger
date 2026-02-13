@@ -8,6 +8,7 @@ data class TradeScreenState(
     val margin: Double = 0.0,
     var pnl: Double = 0.0,
     val error: String? = null,
+    val qty: Double = 0.0,
     val positions: List<PositionItem> = emptyList(),
     val pendingOrders: List<OrderItem> = emptyList()
 )

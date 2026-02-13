@@ -62,8 +62,12 @@ fun TradeScreen(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)) {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)) {
                 AccountMetricsHeader(
                     state.value.balance.toString(),
                     state.value.equity.toString(),
@@ -174,7 +178,9 @@ fun TradeActionBottomSheet(
         var selectedTabIndex by remember { mutableIntStateOf(0) }
         val tabs = listOf("Details", if (position != null) "Close Position" else "Cancel Order")
 
-        Column(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp)) {
             // Tab Row
             TabRow(
                 selectedTabIndex = selectedTabIndex,
@@ -225,24 +231,70 @@ fun DetailsTabContent(position: PositionItem?, order: OrderItem?) {
 }
 
 @Composable
-fun ActionTabContent(position: PositionItem?, order: OrderItem?, onDismiss: () -> Unit) {
+fun ActionTabContent(position: PositionItem?, order: OrderItem?, onDismiss: () -> Unit, tradeScreenState: TradeScreenState, onEvent: (TradeScreenEvent) -> Unit) {
     Column(
-        modifier = Modifier.padding(24.dp).fillMaxWidth(),
+        modifier = Modifier
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = if (position != null) "Confirm to close this position at market price?" else "Confirm to cancel this pending order?",
-            style = MaterialTheme.typography.bodyMedium,
+            text = if (position != null) "Partial or full market close" else "Cancel this pending order",
+            style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (position != null) {
+            OutlinedTextField(
+                value = tradeScreenState.qty.toString(),
+                onValueChange = { onEvent(TradeScreenEvent.OnQuantityChange(qty = it.toDouble())) },
+                label = { Text("Quantity to Close") },
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    TextButton(onClick = { onEvent(TradeScreenEvent.OnQuantityChange(qty = position.qty)) }) {
+                        Text("MAX", color = MT5_BLUE, fontWeight = FontWeight.Bold)
+                    }
+                },
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
+                ),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MT5_BLUE,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.3f)
+                )
+            )
+        } else {
+            Text(
+                text = "Order: ${order?.symbol} (${order?.quantity})",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
+
         Button(
-            onClick = { /* Handle Logic */ onDismiss() },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = if (position != null) MT5_DOWN else Color.Gray),
+            onClick = {
+                if(position != null) onEvent(TradeScreenEvent.OnCloseOpenPositionClick(qty = tradeScreenState.qty, position?.symbol ?: "")) else
+                onDismiss()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (position != null) MT5_DOWN else Color.Gray
+            ),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text(if (position != null) "CLOSE POSITION" else "CANCEL ORDER", fontWeight = FontWeight.Bold)
+            Text(
+                text = if (position != null) "CLOSE ${tradeScreenState.qty} ${position.symbol}" else "CANCEL ORDER",
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
         }
     }
 }
@@ -250,7 +302,9 @@ fun ActionTabContent(position: PositionItem?, order: OrderItem?, onDismiss: () -
 @Composable
 fun DetailRow(label: String, value: String, color: Color = MaterialTheme.colorScheme.onSurface) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, color = Color.Gray, fontSize = 14.sp)
@@ -262,7 +316,10 @@ fun DetailRow(label: String, value: String, color: Color = MaterialTheme.colorSc
 fun TradePositionRow(trade: PositionItem, onClick: () -> Unit) {
     val profitColor = if (trade.pnl < 0) MT5_DOWN else MT5_UP
     Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -282,7 +339,10 @@ fun TradePositionRow(trade: PositionItem, onClick: () -> Unit) {
 @Composable
 fun TradeOrderRow(trade: OrderItem, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
