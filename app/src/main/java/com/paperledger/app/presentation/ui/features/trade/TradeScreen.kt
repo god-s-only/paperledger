@@ -116,7 +116,6 @@ fun TradeScreen(
 
 @Composable
 fun AccountMetricsHeader(balance: String, equity: String, margin: String, freeMargin: String) {
-    // Removed Card background color to keep it clean/white
     Column(modifier = Modifier.padding(16.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             MetricItem("Balance", balance)

@@ -3,6 +3,7 @@ package com.paperledger.app.data.local
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.paperledger.app.data.local.WatchlistsEntity
@@ -25,6 +26,7 @@ interface PaperledgerDAO {
         insertWatchlist(watchlistsEntity)
     }
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPosition(positionEntity: List<PositionEntity>)
 
     @Query("DELETE FROM positions")
