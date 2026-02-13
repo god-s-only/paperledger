@@ -178,15 +178,15 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
     ): Result<Unit> {
         return withContext(Dispatchers.IO){
             try {
-                val res = alpacaApiService.(accountId, symbolOrAssetId, qty)
+                val res = alpacaApiService.closePendingOrder(orderId, accountId)
                 if(!res.isSuccessful){
                     val errorMessage = res.errorBody()?.string()?.let {
                         try {
                             JSONObject(it).getString("message")
                         }catch (e: Exception){
-                            "Error closing position"
+                            "Error closing order"
                         }
-                    } ?: "Error closing position"
+                    } ?: "Error closing order"
                     Result.failure(AppError.HttpError(res.code(), errorMessage))
                 }else{
                     Result.success(Unit)

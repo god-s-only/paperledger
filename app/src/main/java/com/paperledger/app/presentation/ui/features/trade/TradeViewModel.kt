@@ -9,6 +9,7 @@ import com.paperledger.app.domain.models.trade.Position
 import com.paperledger.app.domain.usecase.auth.GetAccountInfoUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.trade.CloseOpenPositionUseCase
+import com.paperledger.app.domain.usecase.trade.ClosePendingOrderUseCase
 import com.paperledger.app.domain.usecase.trade.GetOpenPositionsUseCase
 import com.paperledger.app.domain.usecase.trade.GetPendingOrdersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,7 +29,8 @@ class TradeViewModel @Inject constructor(
     private val getPendingOrdersUseCase: GetPendingOrdersUseCase,
     private val getAccountInfoUseCase: GetAccountInfoUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
-    private val closeOpenPositionUseCase: CloseOpenPositionUseCase
+    private val closeOpenPositionUseCase: CloseOpenPositionUseCase,
+    private val closePendingOrdersUseCase: ClosePendingOrderUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow(TradeScreenState())
     val state = _state.asStateFlow()
@@ -96,6 +98,19 @@ class TradeViewModel @Inject constructor(
         }
         viewModelScope.launch {
             loadPendingOrders(accountId)
+        }
+    }
+
+    private fun closePendingOrder(orderId: String){
+        viewModelScope.launch {
+            closePendingOrdersUseCase.invoke(orderId, getUserIdUseCase.invoke() ?: "").fold(
+                onSuccess = {
+                    sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed pending order"))
+                },
+                onFailure = {
+                    sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(it)))
+                }
+            )
         }
     }
 
@@ -175,7 +190,7 @@ class TradeViewModel @Inject constructor(
                 }
             }
             is TradeScreenEvent.OnClosePendingOrder -> {
-
+                closePendingOrder(event.orderId)
             }
         }
     }
