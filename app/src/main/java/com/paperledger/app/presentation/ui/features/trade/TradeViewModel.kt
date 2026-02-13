@@ -169,6 +169,14 @@ class TradeViewModel @Inject constructor(
             is TradeScreenEvent.OnPositionClick -> {
 
             }
+            is TradeScreenEvent.OnQuantityChange -> {
+                _state.update {
+                    it.copy(qty = event.qty)
+                }
+            }
+            is TradeScreenEvent.OnClosePendingOrder -> {
+
+            }
         }
     }
 

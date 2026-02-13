@@ -111,7 +111,9 @@ fun TradeScreen(
                     position = selectedPosition,
                     order = selectedOrder,
                     onDismiss = { showSheet = false },
-                    sheetState = sheetState
+                    sheetState = sheetState,
+                    state.value,
+                    viewModel
                 )
             }
         }
@@ -167,7 +169,9 @@ fun TradeActionBottomSheet(
     position: PositionItem?,
     order: OrderItem?,
     onDismiss: () -> Unit,
-    sheetState: SheetState
+    sheetState: SheetState,
+    tradeScreenState: TradeScreenState,
+    viewModel: TradeViewModel
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -207,7 +211,7 @@ fun TradeActionBottomSheet(
             // Tab Content
             when (selectedTabIndex) {
                 0 -> DetailsTabContent(position, order)
-                1 -> ActionTabContent(position, order, onDismiss)
+                1 -> ActionTabContent(position, order, onDismiss, tradeScreenState, viewModel::onEvent)
             }
         }
     }
@@ -279,7 +283,8 @@ fun ActionTabContent(position: PositionItem?, order: OrderItem?, onDismiss: () -
 
         Button(
             onClick = {
-                if(position != null) onEvent(TradeScreenEvent.OnCloseOpenPositionClick(qty = tradeScreenState.qty, position?.symbol ?: "")) else
+                if(position != null) onEvent(TradeScreenEvent.OnCloseOpenPositionClick(qty = tradeScreenState.qty, position?.symbol ?: "")) else onEvent(
+                    TradeScreenEvent.OnClosePendingOrder(order?.id ?: ""))
                 onDismiss()
             },
             modifier = Modifier

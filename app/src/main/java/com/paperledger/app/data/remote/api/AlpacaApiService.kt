@@ -108,4 +108,10 @@ interface AlpacaApiService {
         @Path("account_id") accountId: String,
         @Body positionRequest: PositionRequestDTO
     ): Response<PositionResponseDTO>
+
+    @DELETE("/v1/trading/accounts/{account_id}/orders/{order_id}")
+    suspend fun closePendingOrder(
+        @Path("order_id") orderId: String,
+        @Path("account_id") accountId: String
+    ): Response<Void>
 }

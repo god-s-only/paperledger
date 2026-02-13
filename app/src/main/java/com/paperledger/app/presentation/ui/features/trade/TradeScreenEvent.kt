@@ -6,5 +6,5 @@ sealed class TradeScreenEvent {
     data class OnPositionClick(val position: PositionItem) : TradeScreenEvent()
     data class OnCloseOpenPositionClick(val qty: Double, val symbolOrAssetId: String): TradeScreenEvent()
     data class OnQuantityChange(val qty: Double) : TradeScreenEvent()
-    data class OnClosePendingOrder(val symbolOrAssetId: String): TradeScreenEvent()
+    data class OnClosePendingOrder(val orderId: String): TradeScreenEvent()
 }

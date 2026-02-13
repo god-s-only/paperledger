@@ -3,7 +3,7 @@ package com.paperledger.app.data.remote.dto.position_delete
 
 import com.google.gson.annotations.SerializedName
 
-data class DeletePositionResponseDTO(
+data class  DeletePositionResponseDTO(
     @SerializedName("asset_class")
     val assetClass: String,
     @SerializedName("asset_id")
