@@ -17,13 +17,13 @@ fun GetPendingOrdersResponseDTOItem.toDomain(): Order{
         createdAt = createdAt,
         updatedAt = updatedAt,
         submittedAt = submittedAt,
-        filledAt = filledAt,
-        expiredAt = expiredAt,
-        canceledAt = canceledAt,
+        filledAt = filledAt ?: "",
+        expiredAt = expiredAt ?: "",
+        canceledAt = canceledAt ?: "",
         quantity = qty.toDouble(),
         filledQty = filledQty.toDouble(),
-        limitPrice = limitPrice.toDouble(),
-        commission = commission.toDouble(),
+        limitPrice = limitPrice?.toDouble() ?: 0.0,
+        commission = commission?.toDouble() ?: 0.0,
         assetClass = assetClass
     )
 }
@@ -46,8 +46,8 @@ fun GetPendingOrdersResponseDTOItem.toEntity(): OrderEntity{
         canceledAt = canceledAt,
         quantity = qty.toDouble(),
         filledQty = filledQty.toDouble(),
-        limitPrice = limitPrice.toDouble(),
-        commission = commission.toDouble(),
+        limitPrice = limitPrice?.toDouble(),
+        commission = commission?.toDouble() ?: 0.0,
         assetClass = assetClass
     )
 }

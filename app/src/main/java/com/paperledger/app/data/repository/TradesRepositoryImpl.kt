@@ -39,14 +39,18 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
     override suspend fun getPendingOrders(accountId: String): Result<List<Order>> {
         return withContext(Dispatchers.IO) {
             try {
+                Log.d("TAGY", "Called")
                 val res = alpacaApiService.getPendingOrders(accountId)
                 if (!res.isSuccessful) {
                     val errorBody = Gson().fromJson(res.errorBody()?.string(), ErrorResponseDTO::class.java)
+                    Log.d("TAGY", "Error")
                     return@withContext Result.failure(AppError.HttpError(res.code(), errorBody.message))
                 }
+                Log.d("TAGY", "Success")
                 val body = res.body() ?: return@withContext Result.failure(AppError.EmptyBody)
                 Result.success(body.map { it.toDomain() })
             } catch (e: Exception) {
+                Log.d("TAGY", e.message ?: "")
                 Result.failure(mapError(e))
             }
         }
@@ -149,11 +153,10 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
     override suspend fun closePosition(
         accountId: String,
         symbolOrAssetId: String,
-        qty: Double
     ): Result<Unit> {
         return withContext(Dispatchers.IO){
             try {
-                val res = alpacaApiService.closePosition(accountId, symbolOrAssetId, qty)
+                val res = alpacaApiService.closePosition(accountId, symbolOrAssetId)
                 if(!res.isSuccessful){
                     val errorMessage = res.errorBody()?.string()?.let {
                         try {

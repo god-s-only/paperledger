@@ -171,9 +171,9 @@ class TradeViewModel @Inject constructor(
             }
             is TradeScreenEvent.OnCloseOpenPositionClick -> {
                 viewModelScope.launch {
-                    closeOpenPositionUseCase.invoke(accountId = getUserIdUseCase() ?: "", symbolOrAssetId = event.symbolOrAssetId, qty = event.qty).fold(
+                    closeOpenPositionUseCase.invoke(accountId = getUserIdUseCase() ?: "", symbolOrAssetId = event.symbolOrAssetId).fold(
                         onSuccess = {
-                            sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed ${event.qty} worth of open position"))
+                            sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed worth of open position"))
                         },
                         onFailure = { e ->
                             sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))

@@ -9,37 +9,37 @@ data class GetPendingOrdersResponseDTOItem(
     @SerializedName("asset_id")
     val assetId: String,
     @SerializedName("canceled_at")
-    val canceledAt: String,
+    val canceledAt: String? = null,
     @SerializedName("client_order_id")
     val clientOrderId: String,
     @SerializedName("commission")
-    val commission: String,
+    val commission: String? = null,
     @SerializedName("commission_bps")
-    val commissionBps: String,
+    val commissionBps: String? = null,
     @SerializedName("created_at")
     val createdAt: String,
     @SerializedName("expired_at")
-    val expiredAt: String,
+    val expiredAt: String? = null,
     @SerializedName("extended_hours")
     val extendedHours: Boolean,
     @SerializedName("failed_at")
-    val failedAt: String,
+    val failedAt: String? = null,
     @SerializedName("filled_at")
-    val filledAt: String,
+    val filledAt: String? = null,
     @SerializedName("filled_avg_price")
-    val filledAvgPrice: String,
+    val filledAvgPrice: String? = null,
     @SerializedName("filled_qty")
     val filledQty: String,
     @SerializedName("hwm")
-    val hwm: String,
+    val hwm: String? = null,
     @SerializedName("id")
     val id: String,
     @SerializedName("legs")
-    val legs: List<Leg>,
+    val legs: List<Leg>? = null,
     @SerializedName("limit_price")
-    val limitPrice: String,
+    val limitPrice: String? = null,
     @SerializedName("notional")
-    val notional: String,
+    val notional: String? = null,
     @SerializedName("order_class")
     val orderClass: String,
     @SerializedName("order_type")
@@ -47,35 +47,35 @@ data class GetPendingOrdersResponseDTOItem(
     @SerializedName("qty")
     val qty: String,
     @SerializedName("replaced_at")
-    val replacedAt: String,
+    val replacedAt: String? = null,
     @SerializedName("replaced_by")
-    val replacedBy: String,
+    val replacedBy: String? = null,
     @SerializedName("replaces")
-    val replaces: String,
+    val replaces: String? = null,
     @SerializedName("side")
     val side: String,
     @SerializedName("status")
     val status: String,
     @SerializedName("stop_price")
-    val stopPrice: String,
+    val stopPrice: String? = null,
     @SerializedName("submitted_at")
     val submittedAt: String,
     @SerializedName("swap_fee_bps")
-    val swapFeeBps: String,
+    val swapFeeBps: String? = null,
     @SerializedName("swap_rate")
-    val swapRate: String,
+    val swapRate: String? = null,
     @SerializedName("symbol")
     val symbol: String,
     @SerializedName("time_in_force")
     val timeInForce: String,
     @SerializedName("trail_percent")
-    val trailPercent: String,
+    val trailPercent: String? = null,
     @SerializedName("trail_price")
-    val trailPrice: String,
+    val trailPrice: String? = null,
     @SerializedName("type")
     val type: String,
     @SerializedName("updated_at")
     val updatedAt: String,
     @SerializedName("usd")
-    val usd: Usd
+    val usd: Usd? = null
 )

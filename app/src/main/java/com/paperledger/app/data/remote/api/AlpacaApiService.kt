@@ -100,7 +100,6 @@ interface AlpacaApiService {
     suspend fun closePosition(
         @Path("account_id") accountId: String,
         @Path("symbol_or_asset_id") symbolOrAssetId: String,
-        @Query("qty") quantity: Double
     ): Response<DeletePositionResponseDTO>
 
     @POST("/v1/trading/accounts/{account_id}/orders")

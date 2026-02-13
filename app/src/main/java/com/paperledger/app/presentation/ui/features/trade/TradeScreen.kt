@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.paperledger.app.core.UIEvent
 
 // MT5 Color Palette
 val MT5_BLUE = Color(0xFF2196F3)
@@ -37,18 +38,30 @@ fun TradeScreen(
 ) {
     val state = viewModel.state.collectAsState()
 
-    // State for the Bottom Sheet
     var selectedPosition by remember { mutableStateOf<PositionItem?>(null) }
     var selectedOrder by remember { mutableStateOf<OrderItem?>(null) }
     val sheetState = rememberModalBottomSheetState()
     var showSheet by remember { mutableStateOf(false) }
+
+    val snackbarHostState = androidx.compose.runtime.remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when(event){
+                is UIEvent.ShowSnackBar -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                else -> Unit
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = if (state.value.positions.isNotEmpty()) "$${state.value.pnl}" else "Trade",
+                        text = if (state.value.positions.isNotEmpty()) "${state.value.pnl} USD" else "Trade",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = if (state.value.pnl < 0) MT5_DOWN else MT5_UP
@@ -60,7 +73,8 @@ fun TradeScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Box(modifier = Modifier
             .fillMaxSize()
@@ -235,72 +249,75 @@ fun DetailsTabContent(position: PositionItem?, order: OrderItem?) {
 }
 
 @Composable
-fun ActionTabContent(position: PositionItem?, order: OrderItem?, onDismiss: () -> Unit, tradeScreenState: TradeScreenState, onEvent: (TradeScreenEvent) -> Unit) {
+fun ActionTabContent(
+    position: PositionItem?,
+    order: OrderItem?,
+    onDismiss: () -> Unit,
+    tradeScreenState: TradeScreenState,
+    onEvent: (TradeScreenEvent) -> Unit
+) {
     Column(
         modifier = Modifier
-            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .padding(horizontal = 24.dp, vertical = 16.dp)
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Descriptive text for the user
         Text(
-            text = if (position != null) "Partial or full market close" else "Cancel this pending order",
-            style = MaterialTheme.typography.bodySmall,
+            text = if (position != null)
+                "Confirm market execution to close position"
+            else
+                "Confirm cancellation of pending order",
+            style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (position != null) {
-            OutlinedTextField(
-                value = tradeScreenState.qty.toString(),
-                onValueChange = { onEvent(TradeScreenEvent.OnQuantityChange(qty = it.toDouble())) },
-                label = { Text("Quantity to Close") },
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = {
-                    TextButton(onClick = { onEvent(TradeScreenEvent.OnQuantityChange(qty = position.qty)) }) {
-                        Text("MAX", color = MT5_BLUE, fontWeight = FontWeight.Bold)
-                    }
-                },
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
-                ),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MT5_BLUE,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.3f)
-                )
-            )
-        } else {
+        if (order != null) {
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Order: ${order?.symbol} (${order?.quantity})",
+                text = "${order.symbol} (${order.quantity})",
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.titleMedium
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
+        // Large Execution Button
         Button(
             onClick = {
-                if(position != null) onEvent(TradeScreenEvent.OnCloseOpenPositionClick(qty = tradeScreenState.qty, position?.symbol ?: "")) else onEvent(
-                    TradeScreenEvent.OnClosePendingOrder(order?.id ?: ""))
+                if (position != null) {
+                    onEvent(TradeScreenEvent.OnCloseOpenPositionClick(
+                        qty = tradeScreenState.qty,
+                        symbolOrAssetId = position.symbol
+                    ))
+                } else {
+                    onEvent(TradeScreenEvent.OnClosePendingOrder(
+                        orderId = order?.id ?: ""
+                    ))
+                }
                 onDismiss()
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(60.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (position != null) MT5_DOWN else Color.Gray
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = if (position != null) "CLOSE ${tradeScreenState.qty} ${position.symbol}" else "CANCEL ORDER",
-                fontWeight = FontWeight.Bold,
+                text = if (position != null)
+                    "CLOSE  ${position.symbol}"
+                else
+                    "CANCEL ORDER",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 16.sp,
                 letterSpacing = 1.sp
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
