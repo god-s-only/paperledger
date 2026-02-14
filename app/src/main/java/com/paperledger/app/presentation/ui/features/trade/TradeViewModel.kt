@@ -105,19 +105,6 @@ class TradeViewModel @Inject constructor(
         }
     }
 
-    private fun closePendingOrder(orderId: String){
-        viewModelScope.launch {
-            closePendingOrdersUseCase.invoke(orderId, getUserIdUseCase.invoke() ?: "").fold(
-                onSuccess = {
-                    sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed pending order"))
-                },
-                onFailure = {
-                    sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(it)))
-                }
-            )
-        }
-    }
-
     private suspend fun loadPendingOrders(accountId: String) {
         _state.update { it.copy(isLoading = true) }
 
@@ -194,40 +181,53 @@ class TradeViewModel @Inject constructor(
                 }
             }
             is TradeScreenEvent.OnClosePendingOrder -> {
-                closePendingOrder(event.orderId)
+                viewModelScope.launch {
+                    closePendingOrdersUseCase.invoke(event.orderId, getUserIdUseCase.invoke() ?: "").fold(
+                        onSuccess = {
+                            sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed pending order"))
+                            val accountId = getUserIdUseCase()
+                            if (accountId != null) {
+                                loadPendingOrders(accountId)
+                            }
+                        },
+                        onFailure = {
+                            sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(it)))
+                        }
+                    )
+                }
             }
             is TradeScreenEvent.OnCloseAllPositionsClick -> {
-                closeAllPositions()
+                viewModelScope.launch {
+                    closeAllPositionsUseCase.invoke(getUserIdUseCase.invoke() ?: "").fold(
+                        onSuccess = {
+                            sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed all positions"))
+                            val accountId = getUserIdUseCase()
+                            if (accountId != null) {
+                                loadPendingOrders(accountId)
+                            }
+                        },
+                        onFailure = { e ->
+                            sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))
+                        }
+                    )
+                }
             }
             is TradeScreenEvent.OnCancelAllPendingOrdersClick -> {
-                cancelAllPendingOrders()
+                viewModelScope.launch {
+                    cancelAllPendingOrdersUseCase.invoke(getUserIdUseCase.invoke() ?: "").fold(
+                        onSuccess = {
+                            sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully cancelled all pending orders"))
+                            val accountId = getUserIdUseCase()
+                            if (accountId != null) {
+                                loadPendingOrders(accountId)
+                            }
+                        },
+                        onFailure = { e ->
+                            sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))
+                        }
+                    )
+                }
             }
-        }
-    }
-
-    private fun closeAllPositions() {
-        viewModelScope.launch {
-            closeAllPositionsUseCase.invoke(getUserIdUseCase.invoke() ?: "").fold(
-                onSuccess = {
-                    sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed all positions"))
-                },
-                onFailure = { e ->
-                    sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))
-                }
-            )
-        }
-    }
-
-    private fun cancelAllPendingOrders() {
-        viewModelScope.launch {
-            cancelAllPendingOrdersUseCase.invoke(getUserIdUseCase.invoke() ?: "").fold(
-                onSuccess = {
-                    sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully cancelled all pending orders"))
-                },
-                onFailure = { e ->
-                    sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))
-                }
-            )
         }
     }
 
