@@ -113,4 +113,14 @@ interface AlpacaApiService {
         @Path("order_id") orderId: String,
         @Path("account_id") accountId: String
     ): Response<Void>
+
+    @DELETE("/v1/trading/accounts/{account_id}/positions")
+    suspend fun closeAllPositions(
+        @Path("account_id") accountId: String
+    ): Response<Void>
+
+    @DELETE("/v1/trading/accounts/{account_id}/orders")
+    suspend fun cancelAllPendingOrders(
+        @Path("account_id") accountId: String
+    ): Response<Void>
 }
