@@ -79,7 +79,7 @@ class AssetsViewModel @Inject constructor(
 
                     createWatchlistUseCase.invoke(
                         accountId = accountId,
-                        name = "${event.asset.symbol} Watchlist",
+                        name = "${event.asset.symbol}",
                         symbols = listOf(event.asset.symbol)
                     ).fold(
                         onSuccess = {

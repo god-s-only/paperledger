@@ -94,7 +94,7 @@ fun TradeScreen(
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
 
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    item { SectionHeader("POSITIONS") }
+                    item { SectionHeader("POSITIONS"){} }
                     items(state.value.positions) { position ->
                         TradePositionRow(position) {
                             selectedPosition = position
@@ -106,10 +106,9 @@ fun TradeScreen(
 
                     item {
                         Spacer(modifier = Modifier.height(8.dp))
-                        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                     }
 
-                    item { SectionHeader("ORDERS") }
+                    item { SectionHeader("ORDERS"){} }
                     items(state.value.pendingOrders) { order ->
                         TradeOrderRow(order) {
                             selectedOrder = order
@@ -166,31 +165,70 @@ fun MetricItem(label: String, value: String, highlight: Boolean = false) {
 }
 
 @Composable
-fun SectionHeader(title: String) {
+fun SectionHeader(
+    title: String,
+    onActionClick: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-        text = title,
-        modifier = Modifier
-            .weight(1f)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.ExtraBold,
-        color = MT5_BLUE,
-        letterSpacing = 1.sp
+            text = title,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.ExtraBold,
+            color = MT5_BLUE,
+            letterSpacing = 1.sp
         )
 
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Default.MoreHoriz,
-                contentDescription = "Options",
-            )
+        Box {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreHoriz,
+                    contentDescription = "Options",
+                    tint = Color.Gray.copy(alpha = 0.6f)
+                )
+            }
+
+            // The "Side Modal" (DropdownMenu)
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = if (title.contains("POSITIONS", ignoreCase = true))
+                                "Close All Positions"
+                            else
+                                "Cancel All Pending Orders",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onActionClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            tint = MT5_DOWN,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                )
+            }
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
