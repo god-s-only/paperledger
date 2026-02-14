@@ -8,6 +8,7 @@ import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.domain.models.trade.Position
 import com.paperledger.app.domain.usecase.auth.GetAccountInfoUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
+import com.paperledger.app.domain.usecase.trade.CancelAllPendingOrdersUseCase
 import com.paperledger.app.domain.usecase.trade.CloseAllPositionsUseCase
 import com.paperledger.app.domain.usecase.trade.CloseOpenPositionUseCase
 import com.paperledger.app.domain.usecase.trade.ClosePendingOrderUseCase
@@ -32,7 +33,8 @@ class TradeViewModel @Inject constructor(
     private val getUserIdUseCase: GetUserIdUseCase,
     private val closeOpenPositionUseCase: CloseOpenPositionUseCase,
     private val closePendingOrdersUseCase: ClosePendingOrderUseCase,
-    private val closeAllPositionsUseCase: CloseAllPositionsUseCase
+    private val closeAllPositionsUseCase: CloseAllPositionsUseCase,
+    private val cancelAllPendingOrdersUseCase: CancelAllPendingOrdersUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow(TradeScreenState())
     val state = _state.asStateFlow()
@@ -218,7 +220,14 @@ class TradeViewModel @Inject constructor(
 
     private fun cancelAllPendingOrders() {
         viewModelScope.launch {
-            // Will be implemented with the second feature
+            cancelAllPendingOrdersUseCase.invoke(getUserIdUseCase.invoke() ?: "").fold(
+                onSuccess = {
+                    sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully cancelled all pending orders"))
+                },
+                onFailure = { e ->
+                    sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))
+                }
+            )
         }
     }
 

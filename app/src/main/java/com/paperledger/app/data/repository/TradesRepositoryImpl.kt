@@ -221,4 +221,26 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
             }
         }
     }
+
+    override suspend fun cancelAllPendingOrders(accountId: String): Result<Unit> {
+        return withContext(Dispatchers.IO){
+            try {
+                val res = alpacaApiService.cancelAllPendingOrders(accountId)
+                if(!res.isSuccessful){
+                    val errorMessage = res.errorBody()?.string()?.let {
+                        try {
+                            JSONObject(it).getString("message")
+                        }catch (e: Exception){
+                            "Error canceling all pending orders"
+                        }
+                    } ?: "Error canceling all pending orders"
+                    Result.failure(AppError.HttpError(res.code(), errorMessage))
+                }else{
+                    Result.success(Unit)
+                }
+            }catch (e: Exception){
+                Result.failure(mapError(e))
+            }
+        }
+    }
 }
