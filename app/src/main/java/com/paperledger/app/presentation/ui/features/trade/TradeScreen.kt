@@ -3,6 +3,7 @@ package com.paperledger.app.presentation.ui.features.trade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -165,16 +167,30 @@ fun MetricItem(label: String, value: String, highlight: Boolean = false) {
 
 @Composable
 fun SectionHeader(title: String) {
-    Text(
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
         text = title,
         modifier = Modifier
-            .fillMaxWidth()
+            .weight(1f)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.ExtraBold,
         color = MT5_BLUE,
         letterSpacing = 1.sp
-    )
+        )
+
+        IconButton(onClick = {}) {
+            Icon(
+                imageVector = Icons.Default.MoreHoriz,
+                contentDescription = "Options",
+            )
+        }
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
