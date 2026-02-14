@@ -199,4 +199,26 @@ class TradesRepositoryImpl @Inject constructor(private val alpacaApiService: Alp
             }
         }
     }
+
+    override suspend fun closeAllPositions(accountId: String): Result<Unit> {
+        return withContext(Dispatchers.IO){
+            try {
+                val res = alpacaApiService.closeAllPositions(accountId)
+                if(!res.isSuccessful){
+                    val errorMessage = res.errorBody()?.string()?.let {
+                        try {
+                            JSONObject(it).getString("message")
+                        }catch (e: Exception){
+                            "Error closing all positions"
+                        }
+                    } ?: "Error closing all positions"
+                    Result.failure(AppError.HttpError(res.code(), errorMessage))
+                }else{
+                    Result.success(Unit)
+                }
+            }catch (e: Exception){
+                Result.failure(mapError(e))
+            }
+        }
+    }
 }

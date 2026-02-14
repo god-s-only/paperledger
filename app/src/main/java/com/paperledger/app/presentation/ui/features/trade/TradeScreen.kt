@@ -94,7 +94,7 @@ fun TradeScreen(
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
 
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    item { SectionHeader("POSITIONS"){} }
+                    item { SectionHeader("POSITIONS") { viewModel.onEvent(TradeScreenEvent.OnCloseAllPositionsClick) } }
                     items(state.value.positions) { position ->
                         TradePositionRow(position) {
                             selectedPosition = position
@@ -108,7 +108,7 @@ fun TradeScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    item { SectionHeader("ORDERS"){} }
+                    item { SectionHeader("ORDERS") { viewModel.onEvent(TradeScreenEvent.OnCancelAllPendingOrdersClick) } }
                     items(state.value.pendingOrders) { order ->
                         TradeOrderRow(order) {
                             selectedOrder = order

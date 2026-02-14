@@ -8,6 +8,7 @@ import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.domain.models.trade.Position
 import com.paperledger.app.domain.usecase.auth.GetAccountInfoUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
+import com.paperledger.app.domain.usecase.trade.CloseAllPositionsUseCase
 import com.paperledger.app.domain.usecase.trade.CloseOpenPositionUseCase
 import com.paperledger.app.domain.usecase.trade.ClosePendingOrderUseCase
 import com.paperledger.app.domain.usecase.trade.GetOpenPositionsUseCase
@@ -30,7 +31,8 @@ class TradeViewModel @Inject constructor(
     private val getAccountInfoUseCase: GetAccountInfoUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
     private val closeOpenPositionUseCase: CloseOpenPositionUseCase,
-    private val closePendingOrdersUseCase: ClosePendingOrderUseCase
+    private val closePendingOrdersUseCase: ClosePendingOrderUseCase,
+    private val closeAllPositionsUseCase: CloseAllPositionsUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow(TradeScreenState())
     val state = _state.asStateFlow()
@@ -192,6 +194,31 @@ class TradeViewModel @Inject constructor(
             is TradeScreenEvent.OnClosePendingOrder -> {
                 closePendingOrder(event.orderId)
             }
+            is TradeScreenEvent.OnCloseAllPositionsClick -> {
+                closeAllPositions()
+            }
+            is TradeScreenEvent.OnCancelAllPendingOrdersClick -> {
+                cancelAllPendingOrders()
+            }
+        }
+    }
+
+    private fun closeAllPositions() {
+        viewModelScope.launch {
+            closeAllPositionsUseCase.invoke(getUserIdUseCase.invoke() ?: "").fold(
+                onSuccess = {
+                    sendUIEvent(UIEvent.ShowSnackBar(message = "Successfully closed all positions"))
+                },
+                onFailure = { e ->
+                    sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))
+                }
+            )
+        }
+    }
+
+    private fun cancelAllPendingOrders() {
+        viewModelScope.launch {
+            // Will be implemented with the second feature
         }
     }
 
