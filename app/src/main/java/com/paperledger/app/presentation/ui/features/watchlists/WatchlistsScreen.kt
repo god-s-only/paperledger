@@ -116,7 +116,7 @@ fun WatchlistScreen(
                     items(state.watchlists) { watchlist ->
                         WatchlistItem(
                             watchlist = watchlist,
-                            onClick = {  }
+                            onEvent = viewModel::onEvent
                         )
                         Divider(
                             thickness = 0.5.dp,
@@ -132,12 +132,12 @@ fun WatchlistScreen(
 @Composable
 fun WatchlistItem(
     watchlist: WatchlistsEntity,
-    onClick: () -> Unit
+    onEvent: (WatchlistsAction) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable { onEvent(WatchlistsAction.OnWatchlistClick(watchlist)) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
