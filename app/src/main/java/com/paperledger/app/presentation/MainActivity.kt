@@ -43,6 +43,7 @@ import com.paperledger.app.presentation.ui.features.assets.AssetsScreen
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
 import com.paperledger.app.presentation.ui.features.chart.FullTradeChartScreen
 import com.paperledger.app.presentation.ui.features.funding.FundingScreen
+import com.paperledger.app.presentation.ui.features.trade.PlaceTradeScreen
 import com.paperledger.app.presentation.ui.features.trade.TradeScreen
 import com.paperledger.app.presentation.ui.features.watchlists.WatchlistScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -116,6 +117,7 @@ fun MainApp() {
             composable(Routes.WATCHLISTS_SCREEN) { WatchlistScreen(navController = navController) }
             composable(Routes.TRADE_SCREEN) { TradeScreen(navController = navController) }
             composable(Routes.CHART_SCREEN) { FullTradeChartScreen() }
+            composable(Routes.PLACE_TRADE_SCREEN + "/{watchlistName}") { PlaceTradeScreen(navController = navController) }
             composable("settings") { /* Placeholder for Settings */ }
         }
     }

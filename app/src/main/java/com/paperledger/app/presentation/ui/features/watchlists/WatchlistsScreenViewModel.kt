@@ -25,12 +25,13 @@ import javax.inject.Inject
 @HiltViewModel
 class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUseCase: GetWatchlistsUseCase, private val getUserIdUseCase: GetUserIdUseCase): ViewModel() {
     private val _state = MutableStateFlow(WatchlistsScreenState())
-    val state = _state.asStateFlow()
-
-    init {
-        getWatchlists()
-    }
-
+    val state = _state.
+        onStart { getWatchlists() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = WatchlistsScreenState()
+        )
     fun getWatchlists(){
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
@@ -75,6 +76,9 @@ class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUse
         when(action){
             is WatchlistsAction.OnAddWatchlistClick -> {
                 sendUIEvent(UIEvent.Navigate(Routes.ASSETS_SCREEN))
+            }
+            is WatchlistsAction.OnWatchlistClick -> {
+                sendUIEvent(UIEvent.Navigate(Routes.PLACE_TRADE_SCREEN + "/${action.watchlist.name}"))
             }
         }
     }
