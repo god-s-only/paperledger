@@ -53,6 +53,10 @@ fun TradeScreen(
                 is UIEvent.ShowSnackBar -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
+                is UIEvent.Navigate -> {
+                    navController.navigate(event.route)
+                }
+
                 else -> Unit
             }
         }
@@ -70,7 +74,7 @@ fun TradeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {viewModel.onEvent(TradeScreenEvent.OnPlaceTradeClick)}) {
                         Icon(Icons.Default.Add, contentDescription = "New Order", tint = MT5_BLUE)
                     }
                 }

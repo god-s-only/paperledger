@@ -228,6 +228,9 @@ class TradeViewModel @Inject constructor(
                     )
                 }
             }
+            is TradeScreenEvent.OnNavigatePlaceTrade -> {
+                sendUIEvent(UIEvent.Navigate(Routes.PLACE_TRADE_SCREEN + "/"))
+            }
         }
     }
 

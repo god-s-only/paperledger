@@ -9,4 +9,5 @@ sealed class TradeScreenEvent {
     data class OnClosePendingOrder(val orderId: String): TradeScreenEvent()
     data object OnCloseAllPositionsClick : TradeScreenEvent()
     data object OnCancelAllPendingOrdersClick : TradeScreenEvent()
+    data object OnNavigatePlaceTrade: TradeScreenEvent()
 }

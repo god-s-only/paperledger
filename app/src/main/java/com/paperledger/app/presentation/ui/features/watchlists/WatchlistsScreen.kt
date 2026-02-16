@@ -7,18 +7,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -27,6 +25,7 @@ import com.paperledger.app.core.UIEvent
 import com.paperledger.app.data.local.WatchlistsEntity
 
 val MT5_BLUE = Color(0xFF2196F3)
+val MT5_DOWN = Color(0xFFF44336)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,15 +34,18 @@ fun WatchlistScreen(
     navController: NavController
 ) {
     val state by viewModel.state.collectAsState()
-    val snackbarHostState = androidx.compose.runtime.remember { SnackbarHostState() }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Bottom Sheet State
+    var selectedWatchlist by remember { mutableStateOf<WatchlistsEntity?>(null) }
+    val sheetState = rememberModalBottomSheetState()
+    var showSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is UIEvent.ShowSnackBar -> snackbarHostState.showSnackbar(event.message)
-                is UIEvent.Navigate -> {
-                    navController.navigate(event.route)
-                }
+                is UIEvent.Navigate -> navController.navigate(event.route)
                 else -> Unit
             }
         }
@@ -65,22 +67,16 @@ fun WatchlistScreen(
                         IconButton(onClick = { viewModel.onEvent(WatchlistsAction.OnAddWatchlistClick) }) {
                             Icon(Icons.Default.Add, contentDescription = "Add", tint = MT5_BLUE)
                         }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    }
                 )
-                // MT5 Style Linear Loading Bar
                 if (state.isLoading) {
                     LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(2.dp),
+                        modifier = Modifier.fillMaxWidth().height(2.dp),
                         color = MT5_BLUE,
                         trackColor = MT5_BLUE.copy(alpha = 0.1f)
                     )
                 } else {
-                    Divider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+                    HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                 }
             }
         },
@@ -92,37 +88,47 @@ fun WatchlistScreen(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-
-            // Priority 1: Error or Empty Message (Centered)
             if (state.message.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = state.message,
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // Priority 2: Data List
-            else {
+                Text(
+                    text = state.message,
+                    modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center
+                )
+            } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(state.watchlists) { watchlist ->
                         WatchlistItem(
                             watchlist = watchlist,
-                            onEvent = viewModel::onEvent
+                            onClick = {
+                                selectedWatchlist = watchlist
+                                showSheet = true
+                            }
                         )
-                        Divider(
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
-                        )
+                        HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.1f))
                     }
+                }
+            }
+
+            // Bottom Sheet Implementation
+            if (showSheet && selectedWatchlist != null) {
+                ModalBottomSheet(
+                    onDismissRequest = { showSheet = false },
+                    sheetState = sheetState,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    dragHandle = { BottomSheetDefaults.DragHandle() }
+                ) {
+                    WatchlistActionContent(
+                        watchlist = selectedWatchlist!!,
+                        onTrade = {
+                            showSheet = false
+                            viewModel.onEvent(WatchlistsAction.OnWatchlistClick(selectedWatchlist!!))
+                        },
+                        onDelete = {
+                            showSheet = false
+
+                        }
+                    )
                 }
             }
         }
@@ -130,14 +136,47 @@ fun WatchlistScreen(
 }
 
 @Composable
+fun WatchlistActionContent(
+    watchlist: WatchlistsEntity,
+    onTrade: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp, top = 8.dp)
+    ) {
+        Text(
+            text = watchlist.name.uppercase(),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Black,
+            color = MT5_BLUE
+        )
+
+        ListItem(
+            headlineContent = { Text("Trade Asset", fontWeight = FontWeight.SemiBold) },
+            leadingContent = { Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = MT5_BLUE) },
+            modifier = Modifier.clickable { onTrade() }
+        )
+
+        ListItem(
+            headlineContent = { Text("Delete Watchlist", color = MT5_DOWN, fontWeight = FontWeight.SemiBold) },
+            leadingContent = { Icon(Icons.Default.Delete, contentDescription = null, tint = MT5_DOWN) },
+            modifier = Modifier.clickable { onDelete() }
+        )
+    }
+}
+
+@Composable
 fun WatchlistItem(
     watchlist: WatchlistsEntity,
-    onEvent: (WatchlistsAction) -> Unit
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onEvent(WatchlistsAction.OnWatchlistClick(watchlist)) }
+            .clickable { onClick() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -163,15 +202,6 @@ fun WatchlistItem(
                 )
             }
         }
-        Text(
-            text = "➔",
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            fontSize = 18.sp
-        )
+        Text("➔", color = Color.Gray.copy(alpha = 0.4f), fontSize = 18.sp)
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun DefaultPreview() {
 }
