@@ -78,7 +78,7 @@ class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUse
                 sendUIEvent(UIEvent.Navigate(Routes.ASSETS_SCREEN))
             }
             is WatchlistsAction.OnWatchlistClick -> {
-                sendUIEvent(UIEvent.Navigate(Routes.PLACE_TRADE_SCREEN + "/${action.watchlist.name}"))
+                sendUIEvent(UIEvent.Navigate(Routes.PLACE_TRADE_SCREEN + "?watchlistName=${action.watchlist.name}"))
             }
         }
     }

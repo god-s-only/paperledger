@@ -32,10 +32,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.paperledger.app.core.Routes
 import com.paperledger.app.presentation.theme.PaperLedgerTheme
 import com.paperledger.app.presentation.ui.features.ach_relationships.ACHRelationShipScreen
@@ -117,7 +119,16 @@ fun MainApp() {
             composable(Routes.WATCHLISTS_SCREEN) { WatchlistScreen(navController = navController) }
             composable(Routes.TRADE_SCREEN) { TradeScreen(navController = navController) }
             composable(Routes.CHART_SCREEN) { FullTradeChartScreen() }
-            composable(Routes.PLACE_TRADE_SCREEN + "/{watchlistName}") { PlaceTradeScreen(navController = navController) }
+            composable(Routes.PLACE_TRADE_SCREEN + "?watchlistName={watchlistName}", arguments =
+            listOf(
+                navArgument("watchlistName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = "BTCUSD"
+            }
+            )) {
+                PlaceTradeScreen(navController = navController)
+            }
             composable("settings") { /* Placeholder for Settings */ }
         }
     }
