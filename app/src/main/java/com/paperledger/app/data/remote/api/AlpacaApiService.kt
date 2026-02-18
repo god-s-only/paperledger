@@ -125,7 +125,7 @@ interface AlpacaApiService {
     ): Response<Void>
 
     @DELETE("/v1/trading/{account_id}/watchlists/{watchlist_id}")
-    suspend fun removeWatchlists(
+    suspend fun removeWatchlist(
         @Path("account_id") accountId: String,
         @Path("watchlist_id") watchlistId: String
     ): Response<Void>

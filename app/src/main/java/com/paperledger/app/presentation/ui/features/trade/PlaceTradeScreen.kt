@@ -2,7 +2,6 @@ package com.paperledger.app.presentation.ui.features.trade
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,31 +13,35 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaceTradeScreen(
-    symbol: String = "BTCUSDT",
-    navController: NavController
+    navController: NavController,
+    viewModel: PlaceTradeViewModel = hiltViewModel()
 ) {
-    // Parameter States
     var orderType by remember { mutableStateOf("market") } // market or limit
     var side by remember { mutableStateOf("buy") }         // buy or sell
     var qty by remember { mutableStateOf("") }
     var limitPrice by remember { mutableStateOf("") }
     var timeInForce by remember { mutableStateOf("gtc") } // gtc, ioc, fok
 
+    val state = viewModel.state.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("$symbol - New Order", fontWeight = FontWeight.Bold) },
+                title = { Text("$state.value.symbol - New Order", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -51,7 +54,6 @@ fun PlaceTradeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 1. Buy/Sell Toggle (MT5 Style Segmented Control)
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)) {

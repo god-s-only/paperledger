@@ -13,5 +13,9 @@ data class PositionRequestDTO(
     @SerializedName("time_in_force")
     val timeInForce: String,
     @SerializedName("type")
-    val type: String
+    val type: String,
+    @SerializedName("take_profit")
+    val takeProfit: TakeProfitDTO?,
+    @SerializedName("stop_loss")
+    val stopLoss: StopLossDTO?
 )

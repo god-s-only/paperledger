@@ -11,6 +11,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class PlaceTradeViewModel @Inject constructor(savedStateHandle: SavedStateHandle, private val createPositionOrderUseCase: CreatePositionOrderUseCase): ViewModel() {
@@ -23,6 +24,8 @@ class PlaceTradeViewModel @Inject constructor(savedStateHandle: SavedStateHandle
     init {
         savedStateHandle.get<String>("watchlistName")?.let {
             _state.value = _state.value.copy(symbol = it)
+        } ?: _state.update {
+            it.copy(symbol = "AAPL")
         }
     }
 
