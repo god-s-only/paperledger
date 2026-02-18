@@ -89,6 +89,7 @@ class WatchlistsScreenViewModel @Inject constructor(
                 viewModelScope.launch {
                     removeWatchlistUseCase.invoke(getUserIdUseCase.invoke() ?: "", action.watchlistId).fold(
                         onSuccess = {
+                            getWatchlists()
                             _state.update {
                                 it.copy(
                                     error = null
