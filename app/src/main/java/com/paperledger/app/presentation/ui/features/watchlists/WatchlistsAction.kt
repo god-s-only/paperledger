@@ -5,4 +5,5 @@ import com.paperledger.app.data.local.WatchlistsEntity
 sealed class WatchlistsAction {
     data object OnAddWatchlistClick : WatchlistsAction()
     data class OnWatchlistClick(val watchlist: WatchlistsEntity) : WatchlistsAction()
+    data class OnRemoveWatchlist(val watchlistId: String): WatchlistsAction()
 }

@@ -7,6 +7,7 @@ import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.mapErrorMessage
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.watchlists.GetWatchlistsUseCase
+import com.paperledger.app.domain.usecase.watchlists.RemoveWatchlistUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUseCase: GetWatchlistsUseCase, private val getUserIdUseCase: GetUserIdUseCase): ViewModel() {
+class WatchlistsScreenViewModel @Inject constructor(
+    private val getWatchlistsUseCase: GetWatchlistsUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
+    private val removeWatchlistUseCase: RemoveWatchlistUseCase
+): ViewModel() {
     private val _state = MutableStateFlow(WatchlistsScreenState())
     val state = _state.
         onStart { getWatchlists() }
@@ -79,6 +84,28 @@ class WatchlistsScreenViewModel @Inject constructor(private val getWatchlistsUse
             }
             is WatchlistsAction.OnWatchlistClick -> {
                 sendUIEvent(UIEvent.Navigate(Routes.PLACE_TRADE_SCREEN + "?watchlistName=${action.watchlist.name}"))
+            }
+            is WatchlistsAction.OnRemoveWatchlist -> {
+                viewModelScope.launch {
+                    removeWatchlistUseCase.invoke(getUserIdUseCase.invoke() ?: "", action.watchlistId).fold(
+                        onSuccess = {
+                            _state.update {
+                                it.copy(
+                                    error = null
+                                )
+                            }
+                            sendUIEvent(UIEvent.ShowSnackBar(message = "Watchlist removed"))
+                        },
+                        onFailure = { e ->
+                            _state.update {
+                                it.copy(
+                                    error = mapErrorMessage(e)
+                                )
+                            }
+                            sendUIEvent(UIEvent.ShowSnackBar(message = mapErrorMessage(e)))
+                        }
+                    )
+                }
             }
         }
     }

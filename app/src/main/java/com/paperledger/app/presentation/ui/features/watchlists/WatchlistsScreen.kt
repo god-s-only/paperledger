@@ -126,7 +126,7 @@ fun WatchlistScreen(
                         },
                         onDelete = {
                             showSheet = false
-
+                            viewModel.onEvent(WatchlistsAction.OnRemoveWatchlist(watchlistId = it))
                         }
                     )
                 }
@@ -139,7 +139,7 @@ fun WatchlistScreen(
 fun WatchlistActionContent(
     watchlist: WatchlistsEntity,
     onTrade: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -163,7 +163,7 @@ fun WatchlistActionContent(
         ListItem(
             headlineContent = { Text("Delete Watchlist", color = MT5_DOWN, fontWeight = FontWeight.SemiBold) },
             leadingContent = { Icon(Icons.Default.Delete, contentDescription = null, tint = MT5_DOWN) },
-            modifier = Modifier.clickable { onDelete() }
+            modifier = Modifier.clickable { onDelete(watchlist.id) }
         )
     }
 }
