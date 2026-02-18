@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import javax.inject.Inject
 import kotlin.run
@@ -85,6 +86,32 @@ class WatchlistsRepositoryImpl @Inject constructor(private val alpacaApiService:
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(mapError(e))
+        }
+    }
+
+    override suspend fun removeWatchlist(
+        accountId: String,
+        watchlistId: String
+    ): Result<Unit> {
+        return withContext(Dispatchers.IO){
+            try {
+                val res = alpacaApiService.removeWatchlist(accountId, watchlistId)
+                if(!res.isSuccessful){
+                    val errorMessage = if(res.errorBody()?.string() != null){
+                        try {
+                            JSONObject(res.errorBody()?.string()).getString("message")
+                        }catch (e: Exception){
+                            "Failed to remove watchlist"
+                        }
+                    }else{
+                        "Failed to remove watchlist"
+                    }
+                   return@withContext Result.failure(AppError.HttpError(res.code(), errorMessage))
+                }
+                Result.success(Unit)
+            }catch (e: Exception){
+                Result.failure(mapError(e))
+            }
         }
     }
 }

@@ -6,4 +6,5 @@ import kotlinx.coroutines.flow.Flow
 interface WatchlistsRepository {
     fun getWatchlists(accountId: String): Flow<Result<List<WatchlistsEntity>>>
     suspend fun createWatchlist(accountId: String, name: String, symbols: List<String>): Result<Unit>
+    suspend fun removeWatchlist(accountId: String, watchlistId: String): Result<Unit>
 }
