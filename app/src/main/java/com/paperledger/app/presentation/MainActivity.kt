@@ -78,7 +78,19 @@ fun MainApp() {
     Scaffold(
         bottomBar = {
             val mainRoutes = listOf(Routes.WATCHLISTS_SCREEN, Routes.CHART_SCREEN, Routes.TRADE_SCREEN)
-            if (currentRoute in mainRoutes || currentRoute == "settings") {
+            val shouldShowBottomBar = currentRoute in mainRoutes || currentRoute == "settings"
+
+            androidx.compose.animation.AnimatedVisibility(
+                visible = shouldShowBottomBar,
+                enter = androidx.compose.animation.slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(durationMillis = 300)
+                ),
+                exit = androidx.compose.animation.slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(durationMillis = 300)
+                )
+            ) {
                 PaperledgerBottomBar(navController, currentRoute)
             }
         }
