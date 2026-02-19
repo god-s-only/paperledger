@@ -38,7 +38,7 @@ fun PlaceTradeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("$state.value.symbol - New Order", fontWeight = FontWeight.Bold) },
+                title = { Text("${state.value.symbol} - New Order", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
