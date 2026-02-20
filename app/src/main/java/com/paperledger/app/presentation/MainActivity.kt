@@ -45,6 +45,7 @@ import com.paperledger.app.presentation.ui.features.assets.AssetsScreen
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
 import com.paperledger.app.presentation.ui.features.chart.FullTradeChartScreen
 import com.paperledger.app.presentation.ui.features.funding.FundingScreen
+import com.paperledger.app.presentation.ui.features.settings.SettingsScreen
 import com.paperledger.app.presentation.ui.features.trade.PlaceTradeScreen
 import com.paperledger.app.presentation.ui.features.trade.TradeScreen
 import com.paperledger.app.presentation.ui.features.watchlists.WatchlistScreen
@@ -141,7 +142,7 @@ fun MainApp() {
             )) {
                 PlaceTradeScreen(navController = navController)
             }
-            composable("settings") { /* Placeholder for Settings */ }
+            composable(Routes.SETTINGS_SCREEN) { SettingsScreen(navController = navController) }
         }
     }
 }
@@ -190,10 +191,14 @@ fun PaperledgerBottomBar(navController: NavHostController, currentRoute: String?
             colors = navigationBarItemColors()
         )
 
-        // Tab 4: Settings (No route yet)
+        // Tab 4: Settings
         NavigationBarItem(
-            selected = currentRoute == "settings",
-            onClick = { /* Do nothing as requested */ },
+            selected = currentRoute == Routes.SETTINGS_SCREEN,
+            onClick = { navController.navigate(Routes.SETTINGS_SCREEN) {
+                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }},
             label = { Text("Settings", fontSize = 10.sp) },
             icon = { Icon(Icons.Default.Settings, contentDescription = null) },
             colors = navigationBarItemColors()
