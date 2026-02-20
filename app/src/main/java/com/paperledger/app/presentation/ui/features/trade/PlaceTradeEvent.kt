@@ -10,4 +10,5 @@ sealed class PlaceTradeEvent {
     data class OnTakeProfitChange(val takeProfit: String): PlaceTradeEvent()
     data object OnPlacePositionOrder: PlaceTradeEvent()
     data object OnPlacePendingOrder: PlaceTradeEvent()
+    data class OnSymbolChange(val symbol: String): PlaceTradeEvent()
 }

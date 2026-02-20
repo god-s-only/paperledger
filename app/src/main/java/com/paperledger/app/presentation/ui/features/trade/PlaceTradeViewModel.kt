@@ -76,6 +76,9 @@ class PlaceTradeViewModel @Inject constructor(
             is PlaceTradeEvent.OnPlacePendingOrder -> {
                 createPendingOrder()
             }
+            is PlaceTradeEvent.OnSymbolChange -> {
+                _state.update { it.copy(symbol = event.symbol) }
+            }
         }
     }
 

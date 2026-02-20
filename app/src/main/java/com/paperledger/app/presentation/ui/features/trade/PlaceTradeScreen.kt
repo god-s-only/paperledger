@@ -1,5 +1,6 @@
 package com.paperledger.app.presentation.ui.features.trade
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowBack
@@ -15,6 +16,8 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -29,22 +32,74 @@ fun PlaceTradeScreen(
 ) {
     val state = viewModel.state.collectAsState()
 
+    var showSymbolDropdown by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             Column {
                 if (state.value.isLoading) {
                     LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(3.dp),
+                        modifier = Modifier.fillMaxWidth().height(3.dp),
                         color = MT5_BLUE,
                         trackColor = MT5_BLUE.copy(alpha = 0.1f)
                     )
                 } else {
                     Spacer(modifier = Modifier.height(3.dp))
                 }
+
                 TopAppBar(
-                    title = { Text("${state.value.symbol} - New Order", fontWeight = FontWeight.Bold) },
+                    title = {
+                        Box {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clickable { showSymbolDropdown = true }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "${state.value.symbol} - New Order",
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Change Symbol"
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showSymbolDropdown,
+                                onDismissRequest = { showSymbolDropdown = false },
+                                modifier = Modifier.widthIn(min = 200.dp)
+                            ) {
+                                if (state.value.watchlists.isEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text("No assets available", color = Color.Gray) },
+                                        onClick = { showSymbolDropdown = false }
+                                    )
+                                } else {
+                                    state.value.watchlists.forEach { item ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    text = item.name.uppercase(),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            },
+                                            onClick = {
+                                                viewModel.onEvent(PlaceTradeEvent.OnSymbolChange(item.name))
+                                                showSymbolDropdown = false
+                                            },
+                                            trailingIcon = {
+                                                if (item.name == state.value.symbol) {
+                                                    Icon(Icons.Default.Check, contentDescription = null, tint = MT5_BLUE, modifier = Modifier.size(18.dp))
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
