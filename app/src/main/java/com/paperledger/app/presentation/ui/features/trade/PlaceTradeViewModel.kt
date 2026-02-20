@@ -3,6 +3,7 @@ package com.paperledger.app.presentation.ui.features.trade
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.paperledger.app.core.UIEvent
+import com.paperledger.app.domain.usecase.trade.CreatePendingOrderUseCase
 import com.paperledger.app.domain.usecase.trade.CreatePositionOrderUseCase
 import com.paperledger.app.domain.usecase.trade.PlaceTradeEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
-class PlaceTradeViewModel @Inject constructor(savedStateHandle: SavedStateHandle, private val createPositionOrderUseCase: CreatePositionOrderUseCase): ViewModel() {
+class PlaceTradeViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val createPositionOrderUseCase: CreatePositionOrderUseCase,
+    private val createPendingOrderUseCase: CreatePendingOrderUseCase
+): ViewModel() {
     private val _state = MutableStateFlow(PlaceTradeState())
     val state = _state.asStateFlow()
 
