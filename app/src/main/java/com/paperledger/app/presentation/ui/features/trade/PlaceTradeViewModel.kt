@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.mapErrorMessage
+import com.paperledger.app.data.remote.dto.pending_order_post.OrderRequestDTO
 import com.paperledger.app.data.remote.dto.position_order_post.PositionRequestDTO
 import com.paperledger.app.data.remote.dto.position_order_post.StopLossDTO
 import com.paperledger.app.data.remote.dto.position_order_post.TakeProfitDTO
@@ -68,6 +69,9 @@ class PlaceTradeViewModel @Inject constructor(
             is PlaceTradeEvent.OnPlacePositionOrder -> {
                 createPositionOrder()
             }
+            is PlaceTradeEvent.OnPlacePendingOrder -> {
+                createPendingOrder()
+            }
         }
     }
 
@@ -80,6 +84,41 @@ class PlaceTradeViewModel @Inject constructor(
                 )
             }
             createPositionOrderUseCase.invoke(getUserIdUseCase.invoke() ?: "", PositionRequestDTO(_state.value.qty, _state.value.side, _state.value.symbol, _state.value.timeInForce, _state.value.orderType,
+                TakeProfitDTO(_state.value.takeProfit),
+                StopLossDTO(_state.value.stopLoss, _state.value.stopLoss)
+            )).fold(
+                onSuccess = {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                    sendUIEvent(UIEvent.PopBackStack)
+                    sendUIEvent(UIEvent.ShowSnackBar(message = "Order Completed"))
+                },
+                onFailure = { e ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = mapErrorMessage(e)
+                        )
+                    }
+                    sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error!!))
+                }
+            )
+        }
+    }
+    fun createPendingOrder(){
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isLoading = true,
+                    error = null
+                )
+            }
+            createPendingOrderUseCase.invoke(getUserIdUseCase.invoke() ?: "", OrderRequestDTO(_state.value.limitPrice, _state.value.qty, _state.value.side, _state.value.symbol, _state.value.timeInForce,
+                _state.value.orderType,
                 TakeProfitDTO(_state.value.takeProfit),
                 StopLossDTO(_state.value.stopLoss, _state.value.stopLoss)
             )).fold(

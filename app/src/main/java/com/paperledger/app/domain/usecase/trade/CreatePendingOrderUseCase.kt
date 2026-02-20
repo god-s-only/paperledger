@@ -5,7 +5,6 @@ import com.paperledger.app.domain.repository.TradesRepository
 import javax.inject.Inject
 
 class CreatePendingOrderUseCase @Inject constructor(private val repository: TradesRepository) {
-    suspend operator fun invoke(accountId: String, requestDTO: OrderRequestDTO){
+    suspend operator fun invoke(accountId: String, requestDTO: OrderRequestDTO)=
         repository.createPendingOrder(accountId, requestDTO)
-    }
 }
