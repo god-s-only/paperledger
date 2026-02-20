@@ -31,14 +31,30 @@ fun PlaceTradeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("${state.value.symbol} - New Order", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
+            Column {
+                if (state.value.isLoading) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp),
+                        color = MT5_BLUE,
+                        trackColor = MT5_BLUE.copy(alpha = 0.1f)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.height(3.dp))
                 }
-            )
+                TopAppBar(
+                    title = { Text("${state.value.symbol} - New Order", fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                )
+            }
         }
     ) { padding ->
         Column(
