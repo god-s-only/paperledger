@@ -27,11 +27,6 @@ fun PlaceTradeScreen(
     navController: NavController,
     viewModel: PlaceTradeViewModel = hiltViewModel()
 ) {
-    var orderType by remember { mutableStateOf("market") } // market or limit
-    var side by remember { mutableStateOf("buy") }         // buy or sell
-    var qty by remember { mutableStateOf("") }
-    var limitPrice by remember { mutableStateOf("") }
-    var timeInForce by remember { mutableStateOf("gtc") } // gtc, ioc, fok
 
     val state = viewModel.state.collectAsState()
 
@@ -59,32 +54,32 @@ fun PlaceTradeScreen(
                 .height(50.dp)) {
                 OrderSideButton(
                     text = "SELL",
-                    isSelected = side == "sell",
+                    isSelected = state.value.side == "sell",
                     activeColor = MT5_DOWN,
                     modifier = Modifier.weight(1f),
-                    onClick = { side = "sell" }
+                    onClick = { viewModel.onEvent(PlaceTradeEvent.OnSideChange(side = "sell"))}
                 )
                 Spacer(Modifier.width(8.dp))
                 OrderSideButton(
                     text = "BUY",
-                    isSelected = side == "buy",
+                    isSelected = state.value.side == "buy",
                     activeColor = MT5_UP,
                     modifier = Modifier.weight(1f),
-                    onClick = { side = "buy" }
+                    onClick = { viewModel.onEvent(PlaceTradeEvent.OnSideChange(side = "buy")) }
                 )
             }
 
             // 2. Order Type TabRow
             TabRow(
-                selectedTabIndex = if (orderType == "market") 0 else 1,
+                selectedTabIndex = if (state.value.orderType == "market") 0 else 1,
                 containerColor = Color.Transparent,
                 contentColor = MT5_BLUE,
                 divider = {}
             ) {
-                Tab(selected = orderType == "market", onClick = { orderType = "market" }) {
+                Tab(selected = state.value.orderType == "market", onClick = { viewModel.onEvent(PlaceTradeEvent.OnOrderTypeChange(orderType = "market")) }) {
                     Text("Market Execution", modifier = Modifier.padding(12.dp))
                 }
-                Tab(selected = orderType == "limit", onClick = { orderType = "limit" }) {
+                Tab(selected = state.value.orderType == "limit", onClick = { viewModel.onEvent(PlaceTradeEvent.OnOrderTypeChange(orderType = "limit")) }) {
                     Text("Pending Order", modifier = Modifier.padding(12.dp))
                 }
             }
@@ -93,24 +88,24 @@ fun PlaceTradeScreen(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 // Quantity Field (Always visible)
                 OrderInputField(
-                    value = qty,
-                    onValueChange = { qty = it },
+                    value = state.value.qty,
+                    onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnQtyChange(qty = it)) },
                     label = "Quantity (Qty)",
                     placeholder = "0.00"
                 )
 
                 // Limit Price Field (Only for Pending Orders)
-                if (orderType == "limit") {
+                if (state.value.orderType == "limit") {
                     OrderInputField(
-                        value = limitPrice,
-                        onValueChange = { limitPrice = it },
+                        value = state.value.limitPrice,
+                        onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnLimitPriceChange(limitPrice = it)) },
                         label = "Limit Price",
                         placeholder = "Enter target price"
                     )
                 }
 
                 // Time In Force Selector
-                TIFSelector(timeInForce) { timeInForce = it }
+                TIFSelector(state.value.timeInForce) { viewModel.onEvent(PlaceTradeEvent.OnTimeInForceChange(timeInForce = it)) }
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -125,11 +120,11 @@ fun PlaceTradeScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (side == "buy") MT5_UP else MT5_DOWN
+                    containerColor = if (state.value.side == "buy") MT5_UP else MT5_DOWN
                 )
             ) {
                 Text(
-                    text = if (orderType == "market") "PLACE MARKET ORDER" else "PLACE PENDING ORDER",
+                    text = if (state.value.orderType == "market") "PLACE MARKET ORDER" else "PLACE PENDING ORDER",
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 16.sp
                 )

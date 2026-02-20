@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.domain.usecase.trade.CreatePendingOrderUseCase
 import com.paperledger.app.domain.usecase.trade.CreatePositionOrderUseCase
-import com.paperledger.app.domain.usecase.trade.PlaceTradeEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -36,8 +35,20 @@ class PlaceTradeViewModel @Inject constructor(
 
     fun onEvent(event: PlaceTradeEvent){
         when(event){
-            is PlaceTradeEvent.OnPlaceTradeButtonClick -> {
-
+            is PlaceTradeEvent.OnLimitPriceChange -> {
+                _state.update { it.copy(limitPrice = event.limitPrice) }
+            }
+            is PlaceTradeEvent.OnOrderTypeChange -> {
+                _state.update { it.copy(orderType = event.orderType) }
+            }
+            is PlaceTradeEvent.OnQtyChange -> {
+                _state.update { it.copy(qty = event.qty) }
+            }
+            is PlaceTradeEvent.OnSideChange -> {
+                _state.update { it.copy(side = event.side) }
+            }
+            is PlaceTradeEvent.OnTimeInForceChange -> {
+                _state.update { it.copy(timeInForce = event.timeInForce) }
             }
         }
     }
