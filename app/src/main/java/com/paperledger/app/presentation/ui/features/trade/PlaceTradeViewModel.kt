@@ -12,11 +12,13 @@ import com.paperledger.app.data.remote.dto.position_order_post.TakeProfitDTO
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.trade.CreatePendingOrderUseCase
 import com.paperledger.app.domain.usecase.trade.CreatePositionOrderUseCase
+import com.paperledger.app.domain.usecase.watchlists.GetWatchlistsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -26,7 +28,8 @@ class PlaceTradeViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val createPositionOrderUseCase: CreatePositionOrderUseCase,
     private val createPendingOrderUseCase: CreatePendingOrderUseCase,
-    private val getUserIdUseCase: GetUserIdUseCase
+    private val getUserIdUseCase: GetUserIdUseCase,
+    private val getWatchlistsUseCase: GetWatchlistsUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow(PlaceTradeState())
     val state = _state.asStateFlow()
@@ -40,6 +43,7 @@ class PlaceTradeViewModel @Inject constructor(
         } ?: _state.update {
             it.copy(symbol = "AAPL")
         }
+        getWatchlists()
     }
 
     fun onEvent(event: PlaceTradeEvent){
@@ -142,6 +146,32 @@ class PlaceTradeViewModel @Inject constructor(
                     sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error!!))
                 }
             )
+        }
+    }
+
+    fun getWatchlists(){
+        viewModelScope.launch {
+            _state.value = _state.value.copy(error = null)
+            getWatchlistsUseCase.invoke(getUserIdUseCase.invoke() ?: "").collectLatest { result ->
+                result.fold(
+                    onSuccess = { entities ->
+                        _state.update {
+                            it.copy(
+                                watchlists = entities,
+                                error = null
+                            )
+                        }
+                    },
+                    onFailure = { e ->
+                        _state.update {
+                            it.copy(
+                                error = mapErrorMessage(e)
+                            )
+                        }
+                        sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error!!))
+                    }
+                )
+            }
         }
     }
     private fun sendUIEvent(event: UIEvent){

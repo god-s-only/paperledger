@@ -1,5 +1,7 @@
 package com.paperledger.app.presentation.ui.features.trade
 
+import com.paperledger.app.data.local.WatchlistsEntity
+
 data class PlaceTradeState(
     val error: String? = null,
     val isLoading: Boolean = false,
@@ -10,5 +12,6 @@ data class PlaceTradeState(
     val limitPrice: String = "",
     val timeInForce: String = "gtc",
     val stopLoss: String = "",
-    val takeProfit: String = ""
+    val takeProfit: String = "",
+    val watchlists: List<WatchlistsEntity> = emptyList()
 )
