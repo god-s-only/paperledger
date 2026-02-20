@@ -8,5 +8,7 @@ data class PlaceTradeState(
     val side: String = "buy",
     val qty: String = "",
     val limitPrice: String = "",
-    val timeInForce: String = "gtc"
+    val timeInForce: String = "gtc",
+    val stopLoss: String = "",
+    val takeProfit: String = ""
 )

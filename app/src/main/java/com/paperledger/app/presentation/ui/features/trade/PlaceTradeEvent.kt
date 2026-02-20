@@ -6,4 +6,6 @@ sealed class PlaceTradeEvent {
     data class OnQtyChange(val qty: String): PlaceTradeEvent()
     data class OnLimitPriceChange(val limitPrice: String): PlaceTradeEvent()
     data class OnTimeInForceChange(val timeInForce: String): PlaceTradeEvent()
+    data class OnStopLossChange(val stopLoss: String): PlaceTradeEvent()
+    data class OnTakeProfitChange(val takeProfit: String): PlaceTradeEvent()
 }

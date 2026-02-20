@@ -27,7 +27,6 @@ fun PlaceTradeScreen(
     navController: NavController,
     viewModel: PlaceTradeViewModel = hiltViewModel()
 ) {
-
     val state = viewModel.state.collectAsState()
 
     Scaffold(
@@ -49,9 +48,8 @@ fun PlaceTradeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)) {
+            // 1. Buy/Sell Toggle
+            Row(modifier = Modifier.fillMaxWidth().height(50.dp)) {
                 OrderSideButton(
                     text = "SELL",
                     isSelected = state.value.side == "sell",
@@ -85,8 +83,8 @@ fun PlaceTradeScreen(
             }
 
             // 3. Inputs Section
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Quantity Field (Always visible)
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                // Quantity Field
                 OrderInputField(
                     value = state.value.qty,
                     onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnQtyChange(qty = it)) },
@@ -94,7 +92,7 @@ fun PlaceTradeScreen(
                     placeholder = "0.00"
                 )
 
-                // Limit Price Field (Only for Pending Orders)
+                // Limit Price (Only for Pending)
                 if (state.value.orderType == "limit") {
                     OrderInputField(
                         value = state.value.limitPrice,
@@ -104,20 +102,39 @@ fun PlaceTradeScreen(
                     )
                 }
 
+                // --- STOP LOSS & TAKE PROFIT ROW ---
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        OrderInputField(
+                            value = state.value.stopLoss,
+                            onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnStopLossChange(it)) },
+                            label = "Stop Loss",
+                            placeholder = "0.00",
+                            labelColor = MT5_DOWN
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        OrderInputField(
+                            value = state.value.takeProfit,
+                            onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnTakeProfitChange(it)) },
+                            label = "Take Profit",
+                            placeholder = "0.00",
+                            labelColor = MT5_UP
+                        )
+                    }
+                }
+
                 // Time In Force Selector
-                TIFSelector(state.value.timeInForce) { viewModel.onEvent(PlaceTradeEvent.OnTimeInForceChange(timeInForce = it)) }
+                TIFSelector(state.value.timeInForce) {
+                    viewModel.onEvent(PlaceTradeEvent.OnTimeInForceChange(timeInForce = it))
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // 4. Execution Button
             Button(
-                onClick = {
-                    // Logic to build your JSON objects based on 'orderType'
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                onClick = { /* Execution logic */ },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (state.value.side == "buy") MT5_UP else MT5_DOWN
@@ -159,18 +176,26 @@ fun OrderInputField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    placeholder: String
+    placeholder: String,
+    labelColor: Color = Color.Gray
 ) {
     Column {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = labelColor,
+            fontWeight = if(labelColor != Color.Gray) FontWeight.Bold else FontWeight.Normal
+        )
+        Spacer(modifier = Modifier.height(4.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(placeholder) },
+            placeholder = { Text(placeholder, fontSize = 14.sp) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             shape = RoundedCornerShape(12.dp),
-            singleLine = true
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, fontWeight = FontWeight.Medium)
         )
     }
 }

@@ -50,6 +50,9 @@ class PlaceTradeViewModel @Inject constructor(
             is PlaceTradeEvent.OnTimeInForceChange -> {
                 _state.update { it.copy(timeInForce = event.timeInForce) }
             }
+
+            is PlaceTradeEvent.OnStopLossChange -> TODO()
+            is PlaceTradeEvent.OnTakeProfitChange -> TODO()
         }
     }
 }
