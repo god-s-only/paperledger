@@ -133,7 +133,7 @@ fun PlaceTradeScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { /* Execution logic */ },
+                onClick = { if(state.value.orderType == "market") viewModel.onEvent(PlaceTradeEvent.OnPlacePositionOrder) else Unit },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(

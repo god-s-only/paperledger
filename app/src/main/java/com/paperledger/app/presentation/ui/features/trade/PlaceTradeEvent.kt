@@ -8,4 +8,5 @@ sealed class PlaceTradeEvent {
     data class OnTimeInForceChange(val timeInForce: String): PlaceTradeEvent()
     data class OnStopLossChange(val stopLoss: String): PlaceTradeEvent()
     data class OnTakeProfitChange(val takeProfit: String): PlaceTradeEvent()
+    data object OnPlacePositionOrder: PlaceTradeEvent()
 }
