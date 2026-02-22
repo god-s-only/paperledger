@@ -78,8 +78,8 @@ fun MainApp() {
 
     Scaffold(
         bottomBar = {
-            val mainRoutes = listOf(Routes.WATCHLISTS_SCREEN, Routes.CHART_SCREEN, Routes.TRADE_SCREEN)
-            val shouldShowBottomBar = currentRoute in mainRoutes || currentRoute == "settings"
+            val mainRoutes = listOf(Routes.WATCHLISTS_SCREEN, Routes.CHART_SCREEN, Routes.TRADE_SCREEN, Routes.SETTINGS_SCREEN)
+            val shouldShowBottomBar = currentRoute in mainRoutes
 
             androidx.compose.animation.AnimatedVisibility(
                 visible = shouldShowBottomBar,
