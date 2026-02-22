@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AssetsRepositoryImpl @Inject constructor(private val alpacaApiService: AlpacaApiService): AssetsRepository {
-    override suspend fun getAllAssets(searchQuery: String): Flow<PagingData<AssetsModel>> {
+    override fun getAllAssets(searchQuery: String): Flow<PagingData<AssetsModel>> {
         return Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
