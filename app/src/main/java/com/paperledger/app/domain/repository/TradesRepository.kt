@@ -8,7 +8,7 @@ import com.paperledger.app.domain.models.trade.Position
 import kotlinx.coroutines.flow.Flow
 
 interface TradesRepository {
-    suspend fun getPendingOrders(accountId: String): Result<List<Order>>
+    fun getPendingOrders(accountId: String): Flow<Result<List<Order>>>
     fun getOpenPositions(accountId: String): Flow<Result<List<Position>>>
     suspend fun createPendingOrder(accountId: String, orderRequest: OrderRequestDTO): Result<Unit>
     suspend fun createPositionOrder(accountId: String, positionRequest: PositionRequestDTO): Result<Unit>
