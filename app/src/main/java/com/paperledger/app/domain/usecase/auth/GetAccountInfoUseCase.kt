@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetAccountInfoUseCase @Inject constructor(private val repository: AuthRepository) {
-    suspend operator fun invoke(accountId: String): Result<AccountInfo>{
+    operator fun invoke(accountId: String): Flow<Result<AccountInfo>>{
         return repository.getAccountInfo(accountId)
     }
 }

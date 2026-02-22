@@ -30,8 +30,8 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(alpacaApi: AlpacaApiService, paperLedgerSession: PaperLedgerSession): AuthRepository{
-        return AuthRepositoryImpl(alpacaApi, paperLedgerSession)
+    fun provideAuthRepository(alpacaApi: AlpacaApiService, paperLedgerSession: PaperLedgerSession, db: PaperledgerDatabase): AuthRepository{
+        return AuthRepositoryImpl(alpacaApi, paperLedgerSession, db.paperledgerDao())
     }
 
     @Provides

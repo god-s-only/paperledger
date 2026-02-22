@@ -4,7 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.paperledger.app.data.local.WatchlistsEntity
 
-@Database(entities = [WatchlistsEntity::class, PositionEntity::class, OrderEntity::class], version = 2)
+@Database(entities = [WatchlistsEntity::class, PositionEntity::class, OrderEntity::class, AccountInfoEntity::class], version = 3)
 abstract class PaperledgerDatabase: RoomDatabase() {
     abstract fun paperledgerDao(): PaperledgerDAO
 }

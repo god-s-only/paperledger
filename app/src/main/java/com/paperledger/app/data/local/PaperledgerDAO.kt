@@ -10,6 +10,21 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PaperledgerDAO {
 
+    @Query("SELECT * FROM watchlists")
+    fun observeAllWatchlists(): Flow<List<WatchlistsEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWatchlist(watchlists: List<WatchlistsEntity>)
+
+    @Query("DELETE FROM watchlists")
+    suspend fun deleteAllWatchlists()
+
+    @Transaction
+    suspend fun replaceAllWatchlists(watchlists: List<WatchlistsEntity>) {
+        deleteAllWatchlists()
+        insertWatchlist(watchlists)
+    }
+
     @Query("SELECT * FROM positions")
     fun observeAllPositions(): Flow<List<PositionEntity>>
 
