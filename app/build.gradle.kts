@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     val room_version = "2.8.4"
     val nav_version = "2.9.6"
+    val paging_version = "3.2.1"
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -84,4 +85,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
     implementation("androidx.webkit:webkit:1.12.0")
     implementation("com.tradingview:lightweightcharts:3.8.0")
+
+    implementation("androidx.paging:paging-runtime:$paging_version")
+    implementation("androidx.paging:paging-compose:$paging_version")
 }

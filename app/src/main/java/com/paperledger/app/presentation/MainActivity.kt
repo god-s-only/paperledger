@@ -137,7 +137,7 @@ fun MainApp() {
                 navArgument("watchlistName") {
                     type = NavType.StringType
                     nullable = true
-                    defaultValue = "BTCUSD"
+                    defaultValue = "AAPL"
             }
             )) {
                 PlaceTradeScreen(navController = navController)

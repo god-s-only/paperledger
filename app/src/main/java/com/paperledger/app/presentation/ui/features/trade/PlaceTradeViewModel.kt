@@ -40,8 +40,6 @@ class PlaceTradeViewModel @Inject constructor(
     init {
         savedStateHandle.get<String>("watchlistName")?.let {
             _state.value = _state.value.copy(symbol = it)
-        } ?: _state.update {
-            it.copy(symbol = "AAPL")
         }
         getWatchlists()
     }
