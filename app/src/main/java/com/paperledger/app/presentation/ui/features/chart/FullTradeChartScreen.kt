@@ -35,11 +35,12 @@ val MT5_DOWN = Color(0xFFF44336)
 @Composable
 fun FullTradeChartScreen(
     initialSymbol: String = "BTCUSDT",
-    onTradeEvent: (side: String, symbol: String) -> Unit = { _, _ -> }
+    onTradeEvent: (side: String, symbol: String, qty: String) -> Unit = { _, _, _ -> }
 ) {
     var isDarkMode by remember { mutableStateOf(true) }
     var showQuickTrade by remember { mutableStateOf(false) }
     var selectedSymbol by remember { mutableStateOf(initialSymbol) }
+    var tradeQty by remember { mutableStateOf("0.01") } // Default MT5-style lot size
 
     Scaffold(
         topBar = {
@@ -71,7 +72,6 @@ fun FullTradeChartScreen(
                     )
                 )
 
-                // MT5-style Quick Trade Panel
                 AnimatedVisibility(
                     visible = showQuickTrade,
                     enter = expandVertically(),
@@ -79,8 +79,10 @@ fun FullTradeChartScreen(
                 ) {
                     QuickTradePanel(
                         currentSymbol = selectedSymbol,
+                        currentQty = tradeQty,
                         onSymbolChange = { selectedSymbol = it },
-                        onTradeClick = { side -> onTradeEvent(side, selectedSymbol) }
+                        onQtyChange = { tradeQty = it },
+                        onTradeClick = { side -> onTradeEvent(side, selectedSymbol, tradeQty) }
                     )
                 }
             }
@@ -103,7 +105,9 @@ fun FullTradeChartScreen(
 @Composable
 fun QuickTradePanel(
     currentSymbol: String,
+    currentQty: String,
     onSymbolChange: (String) -> Unit,
+    onQtyChange: (String) -> Unit,
     onTradeClick: (String) -> Unit
 ) {
     Surface(
@@ -117,7 +121,7 @@ fun QuickTradePanel(
                 .height(50.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // SELL Button
             Button(
@@ -129,17 +133,36 @@ fun QuickTradePanel(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("SELL", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    Text("Market", fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("Market", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
+
+            // QTY Input (Compact)
+            OutlinedTextField(
+                value = currentQty,
+                onValueChange = onQtyChange,
+                modifier = Modifier.weight(0.7f).height(45.dp),
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                ),
+                placeholder = { Text("Qty", fontSize = 10.sp) },
+                shape = RoundedCornerShape(4.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MT5_BLUE,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.3f)
+                )
+            )
 
             // Symbol Selection/Input
             OutlinedTextField(
                 value = currentSymbol,
                 onValueChange = onSymbolChange,
-                modifier = Modifier.weight(1.2f).height(45.dp),
+                modifier = Modifier.weight(1f).height(45.dp),
                 textStyle = LocalTextStyle.current.copy(
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 ),
@@ -147,7 +170,7 @@ fun QuickTradePanel(
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MT5_BLUE,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.3f)
                 )
             )
 
@@ -161,14 +184,12 @@ fun QuickTradePanel(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("BUY", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    Text("Market", fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("Market", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
     }
 }
-
-// ... Keep your TradingViewWebView as it was ...
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
