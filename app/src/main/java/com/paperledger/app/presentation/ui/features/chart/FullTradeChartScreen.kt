@@ -35,7 +35,6 @@ val MT5_DOWN = Color(0xFFF44336)
 @Composable
 fun FullTradeChartScreen(
     initialSymbol: String = "BTCUSDT",
-    onBackClick: () -> Unit = {},
     onTradeEvent: (side: String, symbol: String) -> Unit = { _, _ -> }
 ) {
     var isDarkMode by remember { mutableStateOf(true) }
@@ -55,11 +54,7 @@ fun FullTradeChartScreen(
                             Icon(Icons.Default.KeyboardArrowDown, null, Modifier.size(20.dp))
                         }
                     },
-                    navigationIcon = {
-                        IconButton(onClick = onBackClick) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
-                    },
                     actions = {
-                        // The "Plus" icon that reveals the trade bar
                         IconButton(onClick = { showQuickTrade = !showQuickTrade }) {
                             Icon(
                                 imageVector = Icons.Default.Add,

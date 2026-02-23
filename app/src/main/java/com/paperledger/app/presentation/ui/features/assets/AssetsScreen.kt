@@ -5,13 +5,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,9 +22,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.domain.models.assets.AssetsModel
 import kotlinx.coroutines.flow.collectLatest
@@ -45,21 +46,24 @@ fun AssetsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedAsset by remember { mutableStateOf<AssetsModel?>(null) }
 
+    // Collect paging data
+    val assets = viewModel.assetsPagingFlow.collectAsLazyPagingItems()
+
+    // Derive loading / error states directly from paging LoadState
+    val isRefreshing = assets.loadState.refresh is LoadState.Loading
+    val isRefreshError = assets.loadState.refresh is LoadState.Error
+    val isAppending = assets.loadState.append is LoadState.Loading
+    val isAppendError = assets.loadState.append is LoadState.Error
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
-                is UIEvent.ShowSnackBar -> {
-                    snackbarHostState.showSnackbar(
-                        message = event.message,
-                        withDismissAction = true
-                    )
-                }
-                is UIEvent.Navigate -> {
-                    navController.navigate(event.route)
-                }
-                is UIEvent.PopBackStack -> {
-                    navController.popBackStack()
-                }
+                is UIEvent.ShowSnackBar -> snackbarHostState.showSnackbar(
+                    message = event.message,
+                    withDismissAction = true
+                )
+                is UIEvent.Navigate -> navController.navigate(event.route)
+                is UIEvent.PopBackStack -> navController.popBackStack()
             }
         }
     }
@@ -73,8 +77,8 @@ fun AssetsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // 1. High-Precision Loading Bar (MT5 Style)
-            if (state.isLoading) {
+            // 1. Loading Bar — driven by paging refresh state
+            if (isRefreshing) {
                 LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -120,7 +124,7 @@ fun AssetsScreen(
                 )
             )
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(top = 8.dp),
                 thickness = 0.5.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -129,37 +133,61 @@ fun AssetsScreen(
             // 4. Content Area
             Box(modifier = Modifier.fillMaxSize()) {
 
-                // Asset List
-                val filteredAssets = remember(state.assets, state.searchQuery) {
-                    state.assets.filter {
-                        it.symbol.contains(state.searchQuery, ignoreCase = true) ||
-                                it.name.contains(state.searchQuery, ignoreCase = true)
-                    }
-                }
-
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .alpha(if (state.isLoading && filteredAssets.isNotEmpty()) 0.5f else 1f),
+                        .alpha(if (isRefreshing && assets.itemCount > 0) 0.5f else 1f),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    items(items = filteredAssets) { asset ->
+                    // Asset items
+                    items(
+                        count = assets.itemCount,
+                        key = assets.itemKey { it.id }
+                    ) { index ->
+                        val asset = assets[index] ?: return@items
                         AssetRow(
                             asset = asset,
-                            onClick = {
-                                selectedAsset = asset
-                            }
+                            onClick = { selectedAsset = asset }
                         )
-                        Divider(
+                        HorizontalDivider(
                             thickness = 0.5.dp,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
+
+                    // Append (next-page) loading spinner
+                    if (isAppending) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = MT5_BLUE,
+                                    strokeWidth = 2.dp,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Append error with retry
+                    if (isAppendError) {
+                        item {
+                            val error = (assets.loadState.append as LoadState.Error).error
+                            RetryFooter(
+                                message = error.message ?: "Failed to load more",
+                                onRetry = { assets.retry() }
+                            )
+                        }
+                    }
                 }
 
-                // Initial Loading State (Large Spinner)
-                if (state.isLoading && state.assets.isEmpty()) {
+                // Full-screen spinner on initial load (no items yet)
+                if (isRefreshing && assets.itemCount == 0) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
                         color = MT5_BLUE,
@@ -167,8 +195,29 @@ fun AssetsScreen(
                     )
                 }
 
-                // Empty State Feedback
-                if (!state.isLoading && filteredAssets.isEmpty()) {
+                // Full-screen refresh error with retry
+                if (isRefreshError && assets.itemCount == 0) {
+                    val error = (assets.loadState.refresh as LoadState.Error).error
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = error.message ?: "Something went wrong",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        )
+                        TextButton(onClick = { assets.retry() }) {
+                            Text("Retry", color = MT5_BLUE)
+                        }
+                    }
+                }
+
+                // Empty state (loaded successfully but no results)
+                if (!isRefreshing && !isRefreshError && assets.itemCount == 0) {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -235,7 +284,7 @@ fun AssetsScreen(
                                 }
                             }
 
-                            Divider(
+                            HorizontalDivider(
                                 modifier = Modifier.padding(vertical = 16.dp),
                                 thickness = 1.dp,
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -273,25 +322,23 @@ fun AssetsScreen(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             // Add to Watchlist Button
-                    Button(
-                        onClick = {
-                            selectedAsset = null
-                            viewModel.onEvent(AssetsScreenEvent.OnCreateWatchlist(asset))
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MT5_BLUE
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Add to Watchlist",
-                            modifier = Modifier.size(24.dp),
-                            tint = Color.White
-                        )
+                            Button(
+                                onClick = {
+                                    selectedAsset = null
+                                    viewModel.onEvent(AssetsScreenEvent.OnCreateWatchlist(asset))
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MT5_BLUE),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = "Add to Watchlist",
+                                    modifier = Modifier.size(24.dp),
+                                    tint = Color.White
+                                )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = "Add to Watchlist",
@@ -310,6 +357,31 @@ fun AssetsScreen(
     }
 }
 
+// ── Footer composables ────────────────────────────────────────────────────────
+
+@Composable
+private fun RetryFooter(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodySmall,
+            color = MT5_RED,
+            textAlign = TextAlign.Center
+        )
+        TextButton(onClick = onRetry) {
+            Text("Retry", color = MT5_BLUE, style = MaterialTheme.typography.labelMedium)
+        }
+    }
+}
+
+// ── Row / Badge composables (unchanged) ──────────────────────────────────────
+
 @Composable
 fun AssetRow(asset: AssetsModel, onClick: () -> Unit = {}) {
     Row(
@@ -320,7 +392,6 @@ fun AssetRow(asset: AssetsModel, onClick: () -> Unit = {}) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Left Column: Ticker and Full Name
         Column(modifier = Modifier.weight(1.2f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -340,8 +411,6 @@ fun AssetRow(asset: AssetsModel, onClick: () -> Unit = {}) {
                 overflow = TextOverflow.Ellipsis
             )
         }
-
-        // Right Column: Exchange and Asset Class
         Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(0.8f)) {
             Text(
                 text = asset.exchange,
@@ -364,7 +433,6 @@ fun AssetRow(asset: AssetsModel, onClick: () -> Unit = {}) {
 fun StatusBadge(status: String) {
     val isActive = status.equals("active", ignoreCase = true)
     val color = if (isActive) MT5_GREEN else MT5_RED
-
     Box(
         modifier = Modifier
             .border(0.5.dp, color.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
