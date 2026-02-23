@@ -40,7 +40,7 @@ fun FullTradeChartScreen(
     var isDarkMode by remember { mutableStateOf(true) }
     var showQuickTrade by remember { mutableStateOf(false) }
     var selectedSymbol by remember { mutableStateOf(initialSymbol) }
-    var tradeQty by remember { mutableStateOf("0.01") } // Default MT5-style lot size
+    var tradeQty by remember { mutableStateOf("0.01") }
 
     Scaffold(
         topBar = {
