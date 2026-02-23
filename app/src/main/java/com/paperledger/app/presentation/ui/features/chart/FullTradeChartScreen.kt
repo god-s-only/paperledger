@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 val MT5_BLUE = Color(0xFF2196F3)
 val MT5_UP = Color(0xFF4CAF50)
@@ -35,12 +37,14 @@ val MT5_DOWN = Color(0xFFF44336)
 @Composable
 fun FullTradeChartScreen(
     initialSymbol: String = "BTCUSDT",
-    onTradeEvent: (side: String, symbol: String, qty: String) -> Unit = { _, _, _ -> }
+    viewModel: FullTradeChartViewModel = hiltViewModel()
 ) {
     var isDarkMode by remember { mutableStateOf(true) }
     var showQuickTrade by remember { mutableStateOf(false) }
     var selectedSymbol by remember { mutableStateOf(initialSymbol) }
     var tradeQty by remember { mutableStateOf("0.01") }
+
+    val state = viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {

@@ -47,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import android.graphics.BitmapFactory
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.paperledger.app.core.UIEvent
@@ -74,7 +75,7 @@ fun SignUpScreen(
     navController: NavController,
     viewModel: SignUpViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val isDarkTheme = MaterialTheme.colorScheme.background == Color(0xFF1E1E1E)
     val borderColor = if (isDarkTheme) DarkBorder else LightBorder
     val surfaceColor = if (isDarkTheme) DarkSurface else LightSurface

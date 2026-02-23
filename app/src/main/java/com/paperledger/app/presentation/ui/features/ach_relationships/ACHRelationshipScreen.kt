@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paperledger.app.core.UIEvent
 
 val MT5_BLUE = Color(0xFF2196F3)
@@ -48,7 +49,7 @@ fun ACHRelationShipScreen(
     modifier: Modifier = Modifier,
     viewModel: ACHRelationshipViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(key1 = true) {

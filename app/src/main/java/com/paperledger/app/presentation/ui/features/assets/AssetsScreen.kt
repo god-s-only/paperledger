@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.LoadState
@@ -42,7 +43,7 @@ fun AssetsScreen(
     viewModel: AssetsViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedAsset by remember { mutableStateOf<AssetsModel?>(null) }
 

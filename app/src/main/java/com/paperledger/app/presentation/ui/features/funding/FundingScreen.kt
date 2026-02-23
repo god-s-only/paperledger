@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.paperledger.app.core.UIEvent
@@ -28,7 +29,7 @@ fun FundingScreen(
     modifier: Modifier = Modifier,
     navController: NavController
 ) {
-    val state = viewModel.state.collectAsState()
+    val state = viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(key1= true) {
         viewModel.uiEvent.collect { result ->

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.data.local.WatchlistsEntity
@@ -33,7 +34,7 @@ fun WatchlistScreen(
     viewModel: WatchlistsScreenViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Bottom Sheet State
