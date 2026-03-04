@@ -124,8 +124,8 @@ class PlaceTradeViewModel @Inject constructor(
             }
             createPendingOrderUseCase.invoke(getUserIdUseCase.invoke() ?: "", OrderRequestDTO(_state.value.limitPrice, _state.value.qty, _state.value.side, _state.value.symbol, _state.value.timeInForce,
                 _state.value.orderType,
-                TakeProfitDTO(_state.value.takeProfit),
-                StopLossDTO(_state.value.stopLoss, _state.value.stopLoss)
+                if (_state.value.takeProfit.isEmpty()) null else TakeProfitDTO(_state.value.takeProfit),
+                if (_state.value.stopLoss.isEmpty()) null else StopLossDTO(_state.value.stopLoss, _state.value.stopLoss)
             )).fold(
                 onSuccess = {
                     _state.update {
