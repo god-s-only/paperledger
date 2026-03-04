@@ -42,7 +42,6 @@ fun FullTradeChartScreen(
     var isDarkMode by remember { mutableStateOf(true) }
     var showQuickTrade by remember { mutableStateOf(false) }
     var selectedSymbol by remember { mutableStateOf(initialSymbol) }
-    var tradeQty by remember { mutableStateOf("0.01") }
 
     val state = viewModel.state.collectAsStateWithLifecycle()
 
@@ -83,10 +82,8 @@ fun FullTradeChartScreen(
                 ) {
                     QuickTradePanel(
                         currentSymbol = selectedSymbol,
-                        currentQty = tradeQty,
-                        onSymbolChange = { selectedSymbol = it },
-                        onQtyChange = { tradeQty = it },
-                        onTradeClick = { side -> onTradeEvent(side, selectedSymbol, tradeQty) }
+                        currentQty = state.value.qty,
+                        onEvent = viewModel::onEvent
                     )
                 }
             }
@@ -110,9 +107,7 @@ fun FullTradeChartScreen(
 fun QuickTradePanel(
     currentSymbol: String,
     currentQty: String,
-    onSymbolChange: (String) -> Unit,
-    onQtyChange: (String) -> Unit,
-    onTradeClick: (String) -> Unit
+    onEvent: (FullTradeChartEvent) -> Unit,
 ) {
     Surface(
         tonalElevation = 4.dp,
@@ -129,10 +124,12 @@ fun QuickTradePanel(
         ) {
             // SELL Button
             Button(
-                onClick = { onTradeClick("sell") },
+                onClick = { onEvent(FullTradeChartEvent.OnTradeClick("sell")) },
                 colors = ButtonDefaults.buttonColors(containerColor = MT5_DOWN),
                 shape = RoundedCornerShape(4.dp),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -144,8 +141,10 @@ fun QuickTradePanel(
             // QTY Input (Compact)
             OutlinedTextField(
                 value = currentQty,
-                onValueChange = onQtyChange,
-                modifier = Modifier.weight(0.7f).height(45.dp),
+                onValueChange = { onEvent(FullTradeChartEvent.OnQtyChange(qty = it)) },
+                modifier = Modifier
+                    .weight(0.7f)
+                    .height(45.dp),
                 textStyle = LocalTextStyle.current.copy(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
@@ -163,8 +162,10 @@ fun QuickTradePanel(
             // Symbol Selection/Input
             OutlinedTextField(
                 value = currentSymbol,
-                onValueChange = onSymbolChange,
-                modifier = Modifier.weight(1f).height(45.dp),
+                onValueChange = { onEvent(FullTradeChartEvent.OnSymbolChange(symbol = it)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(45.dp),
                 textStyle = LocalTextStyle.current.copy(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
@@ -180,10 +181,12 @@ fun QuickTradePanel(
 
             // BUY Button
             Button(
-                onClick = { onTradeClick("buy") },
+                onClick = { onEvent(FullTradeChartEvent.OnTradeClick("buy")) },
                 colors = ButtonDefaults.buttonColors(containerColor = MT5_UP),
                 shape = RoundedCornerShape(4.dp),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
