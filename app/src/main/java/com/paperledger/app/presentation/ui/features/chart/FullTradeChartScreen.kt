@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -42,6 +43,7 @@ fun FullTradeChartScreen(
     var isDarkMode by remember { mutableStateOf(true) }
     var showQuickTrade by remember { mutableStateOf(false) }
     var selectedSymbol by remember { mutableStateOf(initialSymbol) }
+    var showSymbolDropdown by remember { mutableStateOf(false) }
 
     val state = viewModel.state.collectAsStateWithLifecycle()
 
@@ -50,12 +52,63 @@ fun FullTradeChartScreen(
             Column {
                 CenterAlignedTopAppBar(
                     title = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { /* Toggle symbol search */ }
-                        ) {
-                            Text(selectedSymbol, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-                            Icon(Icons.Default.KeyboardArrowDown, null, Modifier.size(20.dp))
+                        Box {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clickable { showSymbolDropdown = true }
+                                    .padding(8.dp)
+                            ) {
+                                // Use state.symbol instead of a local variable
+                                Text(
+                                    text = state.value.symbol,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showSymbolDropdown,
+                                onDismissRequest = { showSymbolDropdown = false },
+                                modifier = Modifier.widthIn(min = 200.dp)
+                            ) {
+                                if (state.value.watchlists.isEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text("No assets available", color = Color.Gray) },
+                                        onClick = { showSymbolDropdown = false }
+                                    )
+                                } else {
+                                    state.value.watchlists.forEach { watchlist ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    text = watchlist.name.uppercase(),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            },
+                                            onClick = {
+                                                viewModel.onEvent(FullTradeChartEvent.OnSymbolChange(watchlist.name))
+                                                showSymbolDropdown = false
+                                            },
+                                            trailingIcon = {
+                                                if (watchlist.name == state.value.symbol) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = null,
+                                                        tint = MT5_BLUE,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     },
                     actions = {
@@ -67,7 +120,11 @@ fun FullTradeChartScreen(
                             )
                         }
                         IconButton(onClick = { isDarkMode = !isDarkMode }) {
-                            Icon(Icons.Default.Settings, "Theme", tint = if (isDarkMode) Color.Yellow else Color.Gray)
+                            Icon(
+                                Icons.Default.Settings,
+                                "Theme",
+                                tint = if (isDarkMode) Color.Yellow else Color.Gray
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -81,7 +138,7 @@ fun FullTradeChartScreen(
                     exit = shrinkVertically()
                 ) {
                     QuickTradePanel(
-                        currentSymbol = selectedSymbol,
+                        currentSymbol = state.value.symbol,
                         currentQty = state.value.qty,
                         onEvent = viewModel::onEvent
                     )
