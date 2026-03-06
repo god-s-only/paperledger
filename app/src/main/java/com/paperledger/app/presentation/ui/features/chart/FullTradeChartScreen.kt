@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.paperledger.app.core.UIEvent
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 val MT5_BLUE = Color(0xFF2196F3)
 val MT5_UP = Color(0xFF4CAF50)
@@ -45,7 +48,23 @@ fun FullTradeChartScreen(
     var selectedSymbol by remember { mutableStateOf(initialSymbol) }
     var showSymbolDropdown by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val state = viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { result ->
+            when(result){
+                is UIEvent.ShowSnackBar -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(result.message)
+                    }
+                }
+                else -> Unit
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -144,6 +163,9 @@ fun FullTradeChartScreen(
                     )
                 }
             }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
         Box(

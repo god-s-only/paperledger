@@ -8,6 +8,7 @@ import com.paperledger.app.data.remote.dto.position_order_post.PositionRequestDT
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.trade.CreatePositionOrderUseCase
 import com.paperledger.app.domain.usecase.watchlists.GetWatchlistsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@HiltViewModel
 class FullTradeChartViewModel @Inject constructor(
     private val createPositionOrderUseCase: CreatePositionOrderUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
