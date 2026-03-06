@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.paperledger.app.core.Routes
 import com.paperledger.app.presentation.ui.features.trade.MT5_BLUE
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +58,7 @@ fun SettingsScreen(navController: NavController) {
                     title = "Funding & Bank Accounts",
                     subtitle = "ACH relationships and deposits",
                     icon = Icons.Default.AccountBalance,
-                    onClick = { /* Navigate to Funding */ }
+                    onClick = { navController.navigate(Routes.ACH_FUNDING_SCREEN) }
                 )
             }
 

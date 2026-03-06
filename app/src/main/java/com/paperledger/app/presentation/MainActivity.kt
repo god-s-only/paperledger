@@ -40,6 +40,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.paperledger.app.core.Routes
 import com.paperledger.app.presentation.theme.PaperLedgerTheme
+import com.paperledger.app.presentation.ui.features.ach_funding.ACHFundingScreen
 import com.paperledger.app.presentation.ui.features.ach_relationships.ACHRelationShipScreen
 import com.paperledger.app.presentation.ui.features.assets.AssetsScreen
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
@@ -132,6 +133,8 @@ fun MainApp() {
             composable(Routes.WATCHLISTS_SCREEN) { WatchlistScreen(navController = navController) }
             composable(Routes.TRADE_SCREEN) { TradeScreen(navController = navController) }
             composable(Routes.CHART_SCREEN) { FullTradeChartScreen() }
+            composable(Routes.SETTINGS_SCREEN) { SettingsScreen(navController = navController) }
+            composable(Routes.ACH_FUNDING_SCREEN) { ACHFundingScreen(navController = navController) }
             composable(Routes.PLACE_TRADE_SCREEN + "?watchlistName={watchlistName}", arguments =
             listOf(
                 navArgument("watchlistName") {
@@ -142,7 +145,6 @@ fun MainApp() {
             )) {
                 PlaceTradeScreen(navController = navController)
             }
-            composable(Routes.SETTINGS_SCREEN) { SettingsScreen(navController = navController) }
         }
     }
 }
