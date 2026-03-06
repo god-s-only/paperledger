@@ -128,4 +128,19 @@ interface AlpacaApiService {
         @Path("account_id") accountId: String,
         @Path("watchlist_id") watchlistId: String
     ): Response<Void>
+
+    @GET("/v1/accounts/{account_id}/ach_relationships")
+    suspend fun getACHRelationships(
+        @Path("account_id") accountId: String
+    ): Response<GetACHRelationshipsDTO>
+
+    @GET("/v1/accounts/{account_id}")
+    suspend fun getAccount(
+        @Path("account_id") accountId: String
+    ): Response<AccountResponseDTO>
+
+    @GET("/v1/accounts/{account_id}/transfers")
+    suspend fun getTransfers(
+        @Path("account_id") accountId: String
+    ): Response<List<FundingResponseDTO>>
 }
