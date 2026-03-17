@@ -10,6 +10,7 @@ import com.paperledger.app.data.remote.dto.funding.request.FundingRequestDTO
 import com.paperledger.app.domain.usecase.ach.GetACHRelationshipIdUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.funding.RequestTransferUseCase
+import com.paperledger.app.domain.usecase.funding.StoreFundingTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,7 +25,8 @@ import javax.inject.Inject
 class FundingScreenViewModel @Inject constructor(
     private val requestTransferUseCase: RequestTransferUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
-    private val getACHRelationshipIdUseCase: GetACHRelationshipIdUseCase
+    private val getACHRelationshipIdUseCase: GetACHRelationshipIdUseCase,
+    private val storeFUndingTokenUseCase: StoreFundingTokenUseCase
 ): ViewModel() {
     private val _state = MutableStateFlow(FundingScreenState())
     val state = _state.asStateFlow()
@@ -48,6 +50,7 @@ class FundingScreenViewModel @Inject constructor(
                             error = null
                         )
                     }
+                    storeFUndingTokenUseCase.invoke(relationshipId)
                 },
                 onFailure = { e ->
                     _state.update {
