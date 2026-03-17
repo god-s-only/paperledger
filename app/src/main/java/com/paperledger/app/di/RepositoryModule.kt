@@ -42,8 +42,8 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideFundingRepository(alpacaApi: AlpacaApiService): FundingRepository {
-        return FundingRepositoryImpl(alpacaApi)
+    fun provideFundingRepository(alpacaApi: AlpacaApiService, paperLedgerSession: PaperLedgerSession): FundingRepository {
+        return FundingRepositoryImpl(alpacaApi, paperLedgerSession)
     }
 
     @Provides

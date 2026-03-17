@@ -13,4 +13,5 @@ object Routes {
     const val CHART_SCREEN = "chart_screen"
     const val SETTINGS_SCREEN = "settings_screen"
     const val ACH_FUNDING_SCREEN = "ach_funding_screen"
+    const val ONBOARDING_SCREEN = "onboarding_screen"
 }

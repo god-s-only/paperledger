@@ -52,6 +52,7 @@ import com.paperledger.app.presentation.ui.features.assets.AssetsScreen
 import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
 import com.paperledger.app.presentation.ui.features.chart.FullTradeChartScreen
 import com.paperledger.app.presentation.ui.features.funding.FundingScreen
+import com.paperledger.app.presentation.ui.features.onboarding.OnboardingScreen
 import com.paperledger.app.presentation.ui.features.settings.SettingsScreen
 import com.paperledger.app.presentation.ui.features.trade.PlaceTradeScreen
 import com.paperledger.app.presentation.ui.features.trade.TradeScreen
@@ -137,7 +138,7 @@ fun MainApp() {
 
         NavHost(
             navController = navController,
-            startDestination = Routes.SIGN_UP,
+            startDestination = Routes.ONBOARDING_SCREEN,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
             composable(Routes.SIGN_UP) { SignUpScreen(navController = navController) }
@@ -160,6 +161,9 @@ fun MainApp() {
                 )
             ) {
                 PlaceTradeScreen(navController = navController)
+            }
+            composable(Routes.ONBOARDING_SCREEN) {
+                OnboardingScreen(navController = navController)
             }
         }
     }
