@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -26,11 +28,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -73,13 +79,35 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
+    val authViewModel: AuthViewModel = hiltViewModel()
+
+    val authDestination by authViewModel.authDestination.collectAsStateWithLifecycle()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    LaunchedEffect(authDestination) {
+        val route = when (authDestination) {
+            is AuthDestination.Loading -> return@LaunchedEffect
+            is AuthDestination.SignUp -> Routes.SIGN_UP
+            is AuthDestination.ACHRelationship -> Routes.ACH_RELATIONSHIP_SCREEN
+            is AuthDestination.Funding -> Routes.FUNDING_SCREEN
+            is AuthDestination.Watchlists -> Routes.WATCHLISTS_SCREEN
+        }
+        navController.navigate(route) {
+            popUpTo(0) { inclusive = true } // Clear entire back stack
+            launchSingleTop = true
+        }
+    }
+
     Scaffold(
         bottomBar = {
-            val mainRoutes = listOf(Routes.WATCHLISTS_SCREEN, Routes.CHART_SCREEN, Routes.TRADE_SCREEN, Routes.SETTINGS_SCREEN)
+            val mainRoutes = listOf(
+                Routes.WATCHLISTS_SCREEN,
+                Routes.CHART_SCREEN,
+                Routes.TRADE_SCREEN,
+                Routes.SETTINGS_SCREEN
+            )
             val shouldShowBottomBar = currentRoute in mainRoutes
 
             androidx.compose.animation.AnimatedVisibility(
@@ -97,34 +125,20 @@ fun MainApp() {
             }
         }
     ) { innerPadding ->
+        if (authDestination is AuthDestination.Loading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+            return@Scaffold
+        }
+
         NavHost(
             navController = navController,
-            startDestination = Routes.CHART_SCREEN,
+            startDestination = Routes.SIGN_UP,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300)
-                ) + fadeIn(animationSpec = tween(300))
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300)
-                ) + fadeOut(animationSpec = tween(300))
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300)
-                ) + fadeIn(animationSpec = tween(300))
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300)
-                ) + fadeOut(animationSpec = tween(300))
-            }
         ) {
             composable(Routes.SIGN_UP) { SignUpScreen(navController = navController) }
             composable(Routes.ACH_RELATIONSHIP_SCREEN) { ACHRelationShipScreen() }
@@ -135,14 +149,16 @@ fun MainApp() {
             composable(Routes.CHART_SCREEN) { FullTradeChartScreen() }
             composable(Routes.SETTINGS_SCREEN) { SettingsScreen(navController = navController) }
             composable(Routes.ACH_FUNDING_SCREEN) { ACHFundingScreen(navController = navController) }
-            composable(Routes.PLACE_TRADE_SCREEN + "?watchlistName={watchlistName}", arguments =
-            listOf(
-                navArgument("watchlistName") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = "AAPL"
-            }
-            )) {
+            composable(
+                Routes.PLACE_TRADE_SCREEN + "?watchlistName={watchlistName}",
+                arguments = listOf(
+                    navArgument("watchlistName") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = "AAPL"
+                    }
+                )
+            ) {
                 PlaceTradeScreen(navController = navController)
             }
         }

@@ -53,7 +53,6 @@ class AuthViewModel @Inject constructor(
                 _authDestination.value = AuthDestination.Funding
                 return@launch
             }
-
             _authDestination.value = AuthDestination.Watchlists
         }
     }
