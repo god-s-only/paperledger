@@ -36,5 +36,10 @@ class PaperLedgerSession @Inject constructor(@ApplicationContext private val con
             it[PreferencesKeys.ACHRELATIONSHIP_TOKEN] = token
         }
     }
+    suspend fun getACHRelationshipToken(): String?{
+        return context.paperLedger.data.map {
+            it[PreferencesKeys.ACHRELATIONSHIP_TOKEN]
+        }.first()
     }
+}
 
