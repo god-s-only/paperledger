@@ -4,4 +4,6 @@ import com.paperledger.app.data.remote.dto.funding.request.FundingRequestDTO
 
 interface FundingRepository {
     suspend fun requestFunding(request: FundingRequestDTO, accountId: String): Result<Unit>
+    suspend fun storeFundingToken(token: String): Result<Unit>
+    suspend fun getFundingToken(): String?
 }

@@ -18,6 +18,7 @@ class PaperLedgerSession @Inject constructor(@ApplicationContext private val con
     private object PreferencesKeys {
         val SESSION_TOKEN = stringPreferencesKey("session_token")
         val ACHRELATIONSHIP_TOKEN = stringPreferencesKey("ach_relationship_token")
+        val FUNDING_TOKEN = stringPreferencesKey("funding_token")
     }
 
     suspend fun storeUserId(id: String) {
@@ -39,6 +40,16 @@ class PaperLedgerSession @Inject constructor(@ApplicationContext private val con
     suspend fun getACHRelationshipToken(): String?{
         return context.paperLedger.data.map {
             it[PreferencesKeys.ACHRELATIONSHIP_TOKEN]
+        }.first()
+    }
+    suspend fun storeFundingToken(token: String) {
+        context.paperLedger.edit {
+            it[PreferencesKeys.FUNDING_TOKEN] = token
+        }
+    }
+    suspend fun getFundingToken(): String?{
+        return context.paperLedger.data.map {
+            it[PreferencesKeys.FUNDING_TOKEN]
         }.first()
     }
 }

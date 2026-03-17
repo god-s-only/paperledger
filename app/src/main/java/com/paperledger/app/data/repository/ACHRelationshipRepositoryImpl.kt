@@ -47,6 +47,10 @@ class ACHRelationshipRepositoryImpl @Inject constructor(private val alpacaAPISer
         }
     }
 
+    override suspend fun getACHRelationshipToken(): String? {
+        return paperLedgerSession.getACHRelationshipToken()
+    }
+
     override suspend fun getACHRelationshipId(accountId: String): Result<String> {
         return withContext(Dispatchers.IO){
             try {
