@@ -22,8 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -66,7 +66,6 @@ fun DocumentsPage(
     var fileName by remember { mutableStateOf("") }
     var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Create a temporary file for camera capture
     val photoFile = remember {
         File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg").apply {
             createNewFile()
@@ -81,19 +80,14 @@ fun DocumentsPage(
         )
     }
 
-    // Function to convert image to Base64
     fun convertImageToBase64(uri: Uri): String? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri)
             val bitmap = BitmapFactory.decodeStream(inputStream)
             inputStream?.close()
-
-            // Compress bitmap to JPEG format
             val outputStream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
             val byteArray = outputStream.toByteArray()
-
-            // Encode to Base64
             Base64.getEncoder().encodeToString(byteArray)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -101,7 +95,6 @@ fun DocumentsPage(
         }
     }
 
-    // Gallery picker launcher
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -116,7 +109,6 @@ fun DocumentsPage(
         }
     }
 
-    // Camera launcher
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
@@ -142,9 +134,7 @@ fun DocumentsPage(
             colors = CardDefaults.cardColors(containerColor = surfaceColor),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = null,
@@ -169,16 +159,13 @@ fun DocumentsPage(
         Spacer(modifier = Modifier.height(12.dp))
 
         if (state.uploadedDocuments.isEmpty()) {
-            // Camera Button
             Button(
                 onClick = { cameraLauncher.launch(photoUri) },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TradingBlue
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = TradingBlue)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
+                    imageVector = Icons.Default.CameraAlt,
                     contentDescription = "Take Photo",
                     modifier = Modifier.size(18.dp)
                 )
@@ -188,16 +175,13 @@ fun DocumentsPage(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Gallery Button
             Button(
                 onClick = { galleryLauncher.launch("image/*") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TradingBlue.copy(alpha = 0.8f)
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = TradingBlue.copy(alpha = 0.8f))
             ) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
+                    imageVector = Icons.Default.Photo,
                     contentDescription = "Choose from Gallery",
                     modifier = Modifier.size(18.dp)
                 )
