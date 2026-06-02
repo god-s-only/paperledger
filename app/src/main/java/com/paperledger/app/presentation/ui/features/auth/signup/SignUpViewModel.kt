@@ -3,7 +3,6 @@ package com.paperledger.app.presentation.ui.features.auth.signup
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.paperledger.app.core.AppError
 import com.paperledger.app.core.Routes
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.core.mapErrorMessage
@@ -34,8 +33,8 @@ class SignUpViewModel @Inject constructor(
 
     private val _uiEvent = Channel<UIEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
-    
-    fun signUp(contactRequest: AccountRequestDTO){
+
+    fun signUp(contactRequest: AccountRequestDTO) {
         viewModelScope.launch {
             signUpUseCase(contactRequest).fold(
                 onSuccess = { accountId ->
@@ -59,62 +58,40 @@ class SignUpViewModel @Inject constructor(
         when (event) {
             SignUpEvent.OnNextFromContactPage -> {
                 if (isContactPageValid()) {
-                    _state.value = _state.value.copy(
-                        currentPage = 2,
-                        error = null
-                    )
+                    _state.value = _state.value.copy(currentPage = 2, error = null)
                 } else {
-                    _state.value = _state.value.copy(
-                        error = "Please complete all required contact fields"
-                    )
+                    _state.value = _state.value.copy(error = "Please complete all required contact fields")
                 }
             }
 
             SignUpEvent.OnNextFromIdentityPage -> {
                 if (isIdentityPageValid()) {
-                    _state.value = _state.value.copy(
-                        currentPage = 3,
-                        error = null
-                    )
+                    _state.value = _state.value.copy(currentPage = 3, error = null)
                 } else {
-                    _state.value = _state.value.copy(
-                        error = "Please complete all required identity fields"
-                    )
+                    _state.value = _state.value.copy(error = "Please complete all required identity fields")
                 }
             }
 
             SignUpEvent.OnNextFromDisclosuresPage -> {
-                _state.value = _state.value.copy(
-                    currentPage = 4,
-                    error = null
-                )
+                _state.value = _state.value.copy(currentPage = 4, error = null)
             }
 
             SignUpEvent.OnNextFromDocumentsPage -> {
                 if (_state.value.uploadedDocuments.isNotEmpty()) {
-                    _state.value = _state.value.copy(
-                        currentPage = 5,
-                        error = null
-                    )
+                    _state.value = _state.value.copy(currentPage = 5, error = null)
                 } else {
-                    _state.value = _state.value.copy(
-                        error = "Please upload at least one document"
-                    )
+                    _state.value = _state.value.copy(error = "Please upload at least one document")
                 }
             }
 
             SignUpEvent.OnSubmitFromTrustedContactPage -> {
                 viewModelScope.launch {
-                    if(isTrustedContactPageValid()){
+                    if (isTrustedContactPageValid()) {
                         _state.value = _state.value.copy(isLoading = true, error = null)
                         val completeRequest = buildCompleteAccountRequest(_state.value)
                         signUp(completeRequest)
-                    }else{
-                        _state.update {
-                            it.copy(
-                                error = "Please fill in all required fields"
-                            )
-                        }
+                    } else {
+                        _state.update { it.copy(error = "Please fill in all required fields") }
                     }
                 }
             }
@@ -162,6 +139,10 @@ class SignUpViewModel @Inject constructor(
 
             is SignUpEvent.OnTaxIdChange -> {
                 _state.value = _state.value.copy(taxId = event.taxId)
+            }
+
+            is SignUpEvent.OnTaxIdTypeChange -> {
+                _state.value = _state.value.copy(taxIdType = event.taxIdType)
             }
 
             is SignUpEvent.OnCountryCodeChange -> {
@@ -239,8 +220,13 @@ class SignUpViewModel @Inject constructor(
                 updateCanNavigateNext()
             }
 
-            is SignUpEvent.OnTrustedContactNameChange -> {
-                _state.value = _state.value.copy(trustedContactName = event.name)
+            is SignUpEvent.OnTrustedContactGivenNameChange -> {
+                _state.value = _state.value.copy(trustedContactGivenName = event.givenName)
+                updateCanNavigateNext()
+            }
+
+            is SignUpEvent.OnTrustedContactFamilyNameChange -> {
+                _state.value = _state.value.copy(trustedContactFamilyName = event.familyName)
                 updateCanNavigateNext()
             }
 
@@ -262,8 +248,7 @@ class SignUpViewModel @Inject constructor(
             }
 
             is SignUpEvent.OnImmediateFamilyExposedChange -> {
-                _state.value =
-                    _state.value.copy(immediateFamilyExposed = event.immediateFamilyExposed)
+                _state.value = _state.value.copy(immediateFamilyExposed = event.immediateFamilyExposed)
             }
 
             is SignUpEvent.OnDocumentUploaded -> {
@@ -290,9 +275,10 @@ class SignUpViewModel @Inject constructor(
                 state.enabledAssets.isNotEmpty()
     }
 
-    private fun isTrustedContactPageValid(): Boolean{
-        return _state.value.trustedContactEmail.isNotBlank() &&
-                _state.value.trustedContactName.isNotBlank()
+    private fun isTrustedContactPageValid(): Boolean {
+        return _state.value.trustedContactGivenName.isNotBlank() &&
+                _state.value.trustedContactFamilyName.isNotBlank() &&
+                _state.value.trustedContactEmail.isNotBlank()
     }
 
     private fun isContactPageValid(): Boolean {
@@ -330,7 +316,7 @@ class SignUpViewModel @Inject constructor(
             familyName = state.lastName,
             dateOfBirth = state.dateOfBirth,
             taxId = state.taxId.ifEmpty { "" },
-            taxIdType = "USA_SSN",
+            taxIdType = state.taxIdType,
             countryOfBirth = state.countryCode,
             countryOfCitizenship = state.countryCode,
             countryOfTaxResidence = state.countryCode,
@@ -364,16 +350,12 @@ class SignUpViewModel @Inject constructor(
 
         val trustedContact = if (state.hasTrustedContact) {
             TrustedContact(
-                givenName = state.trustedContactName,
-                familyName = "Doe",
-                emailAddress = state.email
+                givenName = state.trustedContactGivenName,
+                familyName = state.trustedContactFamilyName,
+                emailAddress = state.trustedContactEmail
             )
         } else {
-            TrustedContact(
-                givenName = "",
-                familyName = "",
-                emailAddress = ""
-            )
+            TrustedContact(givenName = "", familyName = "", emailAddress = "")
         }
 
         val agreements = buildAgreementsList(state)
@@ -388,17 +370,15 @@ class SignUpViewModel @Inject constructor(
             trustedContact = trustedContact
         )
     }
+
     private fun buildAgreementsList(state: SignUpState): List<Agreement> {
-        val agreements = mutableListOf<Agreement>()
-        agreements.add(
+        return listOf(
             Agreement(
                 agreement = "customer_agreement",
                 signedAt = getCurrentTimestamp(),
                 ipAddress = "127.0.0.1",
             )
         )
-
-        return agreements
     }
 
     private fun getCurrentTimestamp(): String {
