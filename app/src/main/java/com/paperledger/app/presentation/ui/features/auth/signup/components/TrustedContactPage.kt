@@ -42,15 +42,11 @@ fun TrustedContactPage(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = if (isDarkTheme) Color(0xFF37474F) else Color(
-                    0xFFE3F2FD
-                )
+                containerColor = if (isDarkTheme) Color(0xFF37474F) else Color(0xFFE3F2FD)
             ),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = "Trusted Contact",
                     style = MaterialTheme.typography.titleSmall,
@@ -72,8 +68,8 @@ fun TrustedContactPage(
         ) {
             InputField(
                 label = "First Name",
-                value = state.trustedContactName,
-                onValueChange = { onEvent(SignUpEvent.OnTrustedContactNameChange(it)) },
+                value = state.trustedContactGivenName,
+                onValueChange = { onEvent(SignUpEvent.OnTrustedContactGivenNameChange(it)) },
                 keyboardType = KeyboardType.Text,
                 placeholder = "First name",
                 surfaceColor = surfaceColor,
@@ -82,11 +78,11 @@ fun TrustedContactPage(
                 modifier = Modifier.weight(1f)
             )
             InputField(
-                label = "Phone",
-                value = state.trustedContactEmail,
-                onValueChange = { onEvent(SignUpEvent.OnTrustedContactEmailChange(it)) },
+                label = "Last Name",
+                value = state.trustedContactFamilyName,
+                onValueChange = { onEvent(SignUpEvent.OnTrustedContactFamilyNameChange(it)) },
                 keyboardType = KeyboardType.Text,
-                placeholder = "Contact email",
+                placeholder = "Last name",
                 surfaceColor = surfaceColor,
                 borderColor = borderColor,
                 isDarkTheme = isDarkTheme,
@@ -94,7 +90,17 @@ fun TrustedContactPage(
             )
         }
 
-        // Add padding at bottom
+        InputField(
+            label = "Email Address",
+            value = state.trustedContactEmail,
+            onValueChange = { onEvent(SignUpEvent.OnTrustedContactEmailChange(it)) },
+            keyboardType = KeyboardType.Email,
+            placeholder = "Contact email",
+            surfaceColor = surfaceColor,
+            borderColor = borderColor,
+            isDarkTheme = isDarkTheme
+        )
+
         Spacer(modifier = Modifier.height(100.dp))
     }
 }
