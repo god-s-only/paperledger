@@ -6,7 +6,7 @@ import com.paperledger.app.domain.usecase.ach.GetACHRelationshipTokenUseCase
 import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.funding.GetFundingTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
