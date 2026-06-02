@@ -17,13 +17,14 @@ data class SignUpState(
     val lastName: String = "",
     val dateOfBirth: String = "",
     val taxId: String = "",
+    val taxIdType: String = "USA_SSN",
     val countryCode: String = "",
     val fundingSource: List<String> = listOf("employment_income"),
 
     // Contact Information
     val email: String = "",
     val phoneNumber: String = "",
-    val streetAddress: List<String> = emptyList(), // changed to List<String>
+    val streetAddress: List<String> = emptyList(),
     val unit: String = "",
     val city: String = "",
     val state: String = "",
@@ -40,7 +41,8 @@ data class SignUpState(
 
     // Trusted Contact Information
     val hasTrustedContact: Boolean = true,
-    val trustedContactName: String = "",
+    val trustedContactGivenName: String = "",
+    val trustedContactFamilyName: String = "",
     val trustedContactEmail: String = "",
 
     // Disclosure Information
