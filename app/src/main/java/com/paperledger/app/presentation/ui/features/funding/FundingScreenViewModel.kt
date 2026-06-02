@@ -95,7 +95,7 @@ class FundingScreenViewModel @Inject constructor(
                             )
                         }
                         sendUIEvent(UIEvent.ShowSnackBar(message = "Transfer ongoing, balance will reflect in 10 minutes"))
-                        sendUIEvent(UIEvent.Navigate(Routes.HOME))
+                        sendUIEvent(UIEvent.Navigate(Routes.WATCHLISTS_SCREEN))
                     },
                     onFailure = { e ->
                         _state.update {

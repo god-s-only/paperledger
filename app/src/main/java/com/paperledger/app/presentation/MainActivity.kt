@@ -4,19 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.ShowChart
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -35,7 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -90,13 +85,14 @@ fun MainApp() {
     LaunchedEffect(authDestination) {
         val route = when (authDestination) {
             is AuthDestination.Loading -> return@LaunchedEffect
+            is AuthDestination.FirstLaunch -> Routes.ONBOARDING_SCREEN
             is AuthDestination.SignUp -> Routes.SIGN_UP
             is AuthDestination.ACHRelationship -> Routes.ACH_RELATIONSHIP_SCREEN
             is AuthDestination.Funding -> Routes.FUNDING_SCREEN
             is AuthDestination.Watchlists -> Routes.WATCHLISTS_SCREEN
         }
         navController.navigate(route) {
-            popUpTo(0) { inclusive = true } // Clear entire back stack
+            popUpTo(Routes.SPLASH_SCREEN) { inclusive = true }
             launchSingleTop = true
         }
     }
@@ -126,21 +122,26 @@ fun MainApp() {
             }
         }
     ) { innerPadding ->
-        if (authDestination is AuthDestination.Loading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-            return@Scaffold
-        }
-
         NavHost(
             navController = navController,
-            startDestination = Routes.ONBOARDING_SCREEN,
+            startDestination = Routes.SPLASH_SCREEN,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
+            composable(Routes.SPLASH_SCREEN) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            composable(Routes.ONBOARDING_SCREEN) {
+                OnboardingScreen(
+                    navController = navController,
+                    authViewModel = authViewModel
+                )
+            }
             composable(Routes.SIGN_UP) { SignUpScreen(navController = navController) }
             composable(Routes.ACH_RELATIONSHIP_SCREEN) { ACHRelationShipScreen() }
             composable(Routes.FUNDING_SCREEN) { FundingScreen(navController = navController) }
@@ -162,9 +163,6 @@ fun MainApp() {
             ) {
                 PlaceTradeScreen(navController = navController)
             }
-            composable(Routes.ONBOARDING_SCREEN) {
-                OnboardingScreen(navController = navController)
-            }
         }
     }
 }
@@ -177,50 +175,55 @@ fun PaperledgerBottomBar(navController: NavHostController, currentRoute: String?
     ) {
         NavigationBarItem(
             selected = currentRoute == Routes.WATCHLISTS_SCREEN,
-            onClick = { navController.navigate(Routes.WATCHLISTS_SCREEN) {
-                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }},
+            onClick = {
+                navController.navigate(Routes.WATCHLISTS_SCREEN) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
             label = { Text("Watchlists", fontSize = 10.sp) },
             icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
             colors = navigationBarItemColors()
         )
 
-        // Tab 2: Chart
         NavigationBarItem(
             selected = currentRoute == Routes.CHART_SCREEN,
-            onClick = { navController.navigate(Routes.CHART_SCREEN) {
-                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }},
+            onClick = {
+                navController.navigate(Routes.CHART_SCREEN) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
             label = { Text("Charts", fontSize = 10.sp) },
             icon = { Icon(Icons.AutoMirrored.Filled.ShowChart, contentDescription = null) },
             colors = navigationBarItemColors()
         )
 
-        // Tab 3: Trade
         NavigationBarItem(
             selected = currentRoute == Routes.TRADE_SCREEN,
-            onClick = { navController.navigate(Routes.TRADE_SCREEN) {
-                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }},
+            onClick = {
+                navController.navigate(Routes.TRADE_SCREEN) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
             label = { Text("Trade", fontSize = 10.sp) },
             icon = { Icon(Icons.Default.SwapHoriz, contentDescription = null) },
             colors = navigationBarItemColors()
         )
 
-        // Tab 4: Settings
         NavigationBarItem(
             selected = currentRoute == Routes.SETTINGS_SCREEN,
-            onClick = { navController.navigate(Routes.SETTINGS_SCREEN) {
-                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }},
+            onClick = {
+                navController.navigate(Routes.SETTINGS_SCREEN) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
             label = { Text("Settings", fontSize = 10.sp) },
             icon = { Icon(Icons.Default.Settings, contentDescription = null) },
             colors = navigationBarItemColors()
@@ -230,9 +233,9 @@ fun PaperledgerBottomBar(navController: NavHostController, currentRoute: String?
 
 @Composable
 fun navigationBarItemColors() = NavigationBarItemDefaults.colors(
-    selectedIconColor = Color(0xFF2196F3), // MT5 Blue
+    selectedIconColor = Color(0xFF2196F3),
     selectedTextColor = Color(0xFF2196F3),
     unselectedIconColor = Color.Gray,
     unselectedTextColor = Color.Gray,
-    indicatorColor = MaterialTheme.colorScheme.surface // Removes the pill-shaped background
+    indicatorColor = MaterialTheme.colorScheme.surface
 )

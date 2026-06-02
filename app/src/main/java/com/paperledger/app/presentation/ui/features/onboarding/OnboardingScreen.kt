@@ -1,13 +1,23 @@
 package com.paperledger.app.presentation.ui.features.onboarding
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -18,21 +28,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.BorderStroke
 import androidx.navigation.NavController
 import com.paperledger.app.core.Routes
+import com.paperledger.app.presentation.AuthViewModel
 import com.paperledger.app.presentation.ui.features.trade.MT5_BLUE
 import kotlinx.coroutines.launch
 
-// Data structure to hold the unique content for each page
 data class OnboardingPageData(
     val title: String,
     val description: String,
     val content: @Composable (Modifier) -> Unit
 )
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OnboardingScreen(navController: NavController) {
+fun OnboardingScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel
+) {
     val pages = listOf(
         OnboardingPageData(
             title = "Welcome to PaperLedger",
@@ -57,7 +74,6 @@ fun OnboardingScreen(navController: NavController) {
         )
     )
 
-    // Pager and Coroutine State
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
 
@@ -70,18 +86,23 @@ fun OnboardingScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 2. Pager Indicator (Dots)
-                PagerIndicator(pagerCount = pages.size, currentPage = pagerState.currentPage)
+                PagerIndicator(
+                    pagerCount = pages.size,
+                    currentPage = pagerState.currentPage
+                )
 
-                // 3. Dynamic Navigation Button (Next/Get Started)
                 Button(
                     onClick = {
                         if (pagerState.currentPage < pages.size - 1) {
-                            scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
                         } else {
-                            // Finish Onboarding and move to Auth or Chart
-                            navController.navigate(Routes.CHART_SCREEN) {
-                                popUpTo(Routes.ONBOARDING_SCREEN) { inclusive = true }
+                            // Onboarding complete — go to sign-up and remove
+                            // onboarding + splash from the back stack entirely
+                            navController.navigate(Routes.SIGN_UP) {
+                                popUpTo(Routes.SPLASH_SCREEN) { inclusive = true }
+                                launchSingleTop = true
                             }
                         }
                     },
@@ -96,7 +117,6 @@ fun OnboardingScreen(navController: NavController) {
             }
         }
     ) { paddingValues ->
-        // 4. Main Pager Implementation
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -109,7 +129,6 @@ fun OnboardingScreen(navController: NavController) {
     }
 }
 
-// 5. Reusable Component for a Single Page Layout
 @Composable
 fun OnboardingPageContent(pageData: OnboardingPageData) {
     Column(
@@ -119,7 +138,6 @@ fun OnboardingPageContent(pageData: OnboardingPageData) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Text at the top
         Text(
             text = pageData.title,
             style = MaterialTheme.typography.headlineMedium,
@@ -139,16 +157,15 @@ fun OnboardingPageContent(pageData: OnboardingPageData) {
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
-        Spacer(modifier = Modifier.weight(1f)) // Push image to center vertically
+        Spacer(modifier = Modifier.weight(1f))
 
-        // 6. The Requested Image Composable Container
         pageData.content(
             Modifier
                 .fillMaxWidth(0.85f)
-                .aspectRatio(1f) // Keep it a consistent square
+                .aspectRatio(1f)
         )
 
-        Spacer(modifier = Modifier.weight(1.2f)) // Ensure image doesn't hit the bottom buttons
+        Spacer(modifier = Modifier.weight(1.2f))
     }
 }
 
@@ -173,9 +190,12 @@ fun PlaceholderImageComposable(modifier: Modifier, text: String) {
         modifier = modifier,
         color = Color.Gray.copy(alpha = 0.05f),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f))
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
             Text(
                 text = "[ IMAGE PLACEHOLDER ]\n$text",
                 style = MaterialTheme.typography.labelLarge,

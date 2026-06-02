@@ -14,6 +14,9 @@ import kotlinx.coroutines.launch
 
 sealed class AuthDestination {
     object Loading : AuthDestination()
+    // True first-launch: no account created yet → show onboarding
+    object FirstLaunch : AuthDestination()
+    // Returning user who dropped off mid-flow
     object SignUp : AuthDestination()
     object ACHRelationship : AuthDestination()
     object Funding : AuthDestination()
@@ -38,7 +41,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = getUserIdUseCase()
             if (userId == null) {
-                _authDestination.value = AuthDestination.SignUp
+                _authDestination.value = AuthDestination.FirstLaunch
                 return@launch
             }
 
@@ -53,6 +56,7 @@ class AuthViewModel @Inject constructor(
                 _authDestination.value = AuthDestination.Funding
                 return@launch
             }
+
             _authDestination.value = AuthDestination.Watchlists
         }
     }
