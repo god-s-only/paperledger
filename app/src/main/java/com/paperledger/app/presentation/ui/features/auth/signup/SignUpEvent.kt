@@ -7,6 +7,7 @@ sealed class SignUpEvent {
     data class OnLastNameChange(val lastName: String) : SignUpEvent()
     data class OnDateOfBirthChange(val dateOfBirth: String) : SignUpEvent()
     data class OnTaxIdChange(val taxId: String) : SignUpEvent()
+    data class OnTaxIdTypeChange(val taxIdType: String) : SignUpEvent()
     data class OnCountryCodeChange(val countryCode: String) : SignUpEvent()
     data class OnFundingSourcesChange(val fundingSources: List<String>) : SignUpEvent()
 
@@ -30,7 +31,8 @@ sealed class SignUpEvent {
 
     // Trusted Contact Information
     data class OnTrustedContactGivenChange(val hasTrustedContact: Boolean) : SignUpEvent()
-    data class OnTrustedContactNameChange(val name: String) : SignUpEvent()
+    data class OnTrustedContactGivenNameChange(val givenName: String) : SignUpEvent()
+    data class OnTrustedContactFamilyNameChange(val familyName: String) : SignUpEvent()
     data class OnTrustedContactEmailChange(val email: String) : SignUpEvent()
 
     // Disclosure Information
@@ -43,20 +45,11 @@ sealed class SignUpEvent {
     data class OnDocumentUploaded(val documentId: String) : SignUpEvent()
     data class OnDocumentRemoved(val documentId: String) : SignUpEvent()
 
-    // Page Navigation - 5 Page Flow
-    // Page 1: Contact Information → Create Account
+    // Page Navigation
     data object OnNextFromContactPage : SignUpEvent()
-
-    // Page 2: Identity Information → Update Account  
     data object OnNextFromIdentityPage : SignUpEvent()
-
-    // Page 3: Disclosures → Update Account
     data object OnNextFromDisclosuresPage : SignUpEvent()
-
-    // Page 4: Documents → Update Account
     data object OnNextFromDocumentsPage : SignUpEvent()
-
-    // Page 5: Trusted Contact → Update Account (Final)
     data object OnSubmitFromTrustedContactPage : SignUpEvent()
 
     // Navigation Actions
@@ -64,5 +57,4 @@ sealed class SignUpEvent {
     data object OnNavigateToNextPage : SignUpEvent()
     data object OnNavigateBack : SignUpEvent()
     data object OnRetrySubmit : SignUpEvent()
-
 }
