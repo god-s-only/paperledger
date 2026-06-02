@@ -28,14 +28,14 @@ fun SignUpProgressIndicator(
         for (i in 0 until totalSteps) {
             ProgressStep(
                 step = i + 1,
-                isCompleted = i < currentStep,
-                isActive = i == currentStep,
+                isCompleted = i < currentStep - 1,
+                isActive = i == currentStep - 1,
                 activeColor = activeColor,
                 inactiveColor = inactiveColor
             )
             if (i < totalSteps - 1) {
                 ProgressLine(
-                    isCompleted = i < currentStep,
+                    isCompleted = i < currentStep - 1,
                     activeColor = activeColor,
                     inactiveColor = inactiveColor,
                     modifier = Modifier.weight(1f, fill = false)
