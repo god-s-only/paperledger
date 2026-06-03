@@ -5,26 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,6 +37,7 @@ import com.paperledger.app.presentation.ui.features.chart.FullTradeChartScreen
 import com.paperledger.app.presentation.ui.features.funding.FundingScreen
 import com.paperledger.app.presentation.ui.features.onboarding.OnboardingScreen
 import com.paperledger.app.presentation.ui.features.settings.SettingsScreen
+import com.paperledger.app.presentation.ui.features.settings.SettingsViewModel
 import com.paperledger.app.presentation.ui.features.trade.PlaceTradeScreen
 import com.paperledger.app.presentation.ui.features.trade.TradeScreen
 import com.paperledger.app.presentation.ui.features.watchlists.WatchlistScreen
@@ -60,7 +49,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PaperLedgerTheme {
+            // Read dark mode preference here so the theme wraps everything
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            val isDarkMode by settingsViewModel.isDarkMode.collectAsStateWithLifecycle()
+
+            PaperLedgerTheme(darkTheme = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -76,7 +69,6 @@ class MainActivity : ComponentActivity() {
 fun MainApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = hiltViewModel()
-
     val authDestination by authViewModel.authDestination.collectAsStateWithLifecycle()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -128,19 +120,12 @@ fun MainApp() {
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
             composable(Routes.SPLASH_SCREEN) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
-
             composable(Routes.ONBOARDING_SCREEN) {
-                OnboardingScreen(
-                    navController = navController,
-                    authViewModel = authViewModel
-                )
+                OnboardingScreen(navController = navController, authViewModel = authViewModel)
             }
             composable(Routes.SIGN_UP) { SignUpScreen(navController = navController) }
             composable(Routes.ACH_RELATIONSHIP_SCREEN) { ACHRelationShipScreen() }
@@ -186,7 +171,6 @@ fun PaperledgerBottomBar(navController: NavHostController, currentRoute: String?
             icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
             colors = navigationBarItemColors()
         )
-
         NavigationBarItem(
             selected = currentRoute == Routes.CHART_SCREEN,
             onClick = {
@@ -200,7 +184,6 @@ fun PaperledgerBottomBar(navController: NavHostController, currentRoute: String?
             icon = { Icon(Icons.AutoMirrored.Filled.ShowChart, contentDescription = null) },
             colors = navigationBarItemColors()
         )
-
         NavigationBarItem(
             selected = currentRoute == Routes.TRADE_SCREEN,
             onClick = {
@@ -214,7 +197,6 @@ fun PaperledgerBottomBar(navController: NavHostController, currentRoute: String?
             icon = { Icon(Icons.Default.SwapHoriz, contentDescription = null) },
             colors = navigationBarItemColors()
         )
-
         NavigationBarItem(
             selected = currentRoute == Routes.SETTINGS_SCREEN,
             onClick = {
