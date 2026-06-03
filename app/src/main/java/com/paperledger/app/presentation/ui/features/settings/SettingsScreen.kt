@@ -14,13 +14,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.paperledger.app.core.Routes
 import com.paperledger.app.presentation.ui.features.trade.MT5_BLUE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -70,8 +77,8 @@ fun SettingsScreen(navController: NavController) {
                     title = "Dark Mode",
                     subtitle = "Toggle app visual theme",
                     icon = Icons.Default.DarkMode,
-                    checked = true, // Hook up to your theme data store
-                    onCheckedChange = { /* Update Theme */ }
+                    checked = isDarkMode,
+                    onCheckedChange = { viewModel.toggleDarkMode(it) }
                 )
             }
             item {
