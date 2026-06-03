@@ -12,12 +12,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paperledger.app.core.UIEvent
 import kotlinx.coroutines.flow.collectLatest
@@ -40,26 +39,22 @@ val MT5_DOWN = Color(0xFFF44336)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullTradeChartScreen(
-    initialSymbol: String = "AAPL",
     viewModel: FullTradeChartViewModel = hiltViewModel()
 ) {
     var isDarkMode by remember { mutableStateOf(true) }
     var showQuickTrade by remember { mutableStateOf(false) }
-    var selectedSymbol by remember { mutableStateOf(initialSymbol) }
     var showSymbolDropdown by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val state = viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { result ->
-            when(result){
-                is UIEvent.ShowSnackBar -> {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(result.message)
-                    }
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is UIEvent.ShowSnackBar -> scope.launch {
+                    snackbarHostState.showSnackbar(event.message)
                 }
                 else -> Unit
             }
@@ -78,9 +73,8 @@ fun FullTradeChartScreen(
                                     .clickable { showSymbolDropdown = true }
                                     .padding(8.dp)
                             ) {
-                                // Use state.symbol instead of a local variable
                                 Text(
-                                    text = state.value.symbol,
+                                    text = state.symbol,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.ExtraBold
                                 )
@@ -96,13 +90,13 @@ fun FullTradeChartScreen(
                                 onDismissRequest = { showSymbolDropdown = false },
                                 modifier = Modifier.widthIn(min = 200.dp)
                             ) {
-                                if (state.value.watchlists.isEmpty()) {
+                                if (state.watchlists.isEmpty()) {
                                     DropdownMenuItem(
-                                        text = { Text("No assets available", color = Color.Gray) },
+                                        text = { Text("No watchlist assets", color = Color.Gray) },
                                         onClick = { showSymbolDropdown = false }
                                     )
                                 } else {
-                                    state.value.watchlists.forEach { watchlist ->
+                                    state.watchlists.forEach { watchlist ->
                                         DropdownMenuItem(
                                             text = {
                                                 Text(
@@ -115,7 +109,7 @@ fun FullTradeChartScreen(
                                                 showSymbolDropdown = false
                                             },
                                             trailingIcon = {
-                                                if (watchlist.name == state.value.symbol) {
+                                                if (watchlist.name.equals(state.symbol, ignoreCase = true)) {
                                                     Icon(
                                                         imageVector = Icons.Default.Check,
                                                         contentDescription = null,
@@ -140,8 +134,8 @@ fun FullTradeChartScreen(
                         }
                         IconButton(onClick = { isDarkMode = !isDarkMode }) {
                             Icon(
-                                Icons.Default.Settings,
-                                "Theme",
+                                imageVector = if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                                contentDescription = "Toggle theme",
                                 tint = if (isDarkMode) Color.Yellow else Color.Gray
                             )
                         }
@@ -157,16 +151,14 @@ fun FullTradeChartScreen(
                     exit = shrinkVertically()
                 ) {
                     QuickTradePanel(
-                        currentSymbol = state.value.symbol,
-                        currentQty = state.value.qty,
+                        currentSymbol = state.symbol,
+                        currentQty = state.qty,
                         onEvent = viewModel::onEvent
                     )
                 }
             }
         },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -174,8 +166,9 @@ fun FullTradeChartScreen(
                 .padding(paddingValues)
                 .background(if (isDarkMode) Color.Black else Color.White)
         ) {
+            // Pass symbol directly from state — no local selectedSymbol, no hardcoded prefix
             TradingViewWebView(
-                symbol = "NASDAQ:$selectedSymbol",
+                symbol = state.symbol,
                 isDarkMode = isDarkMode
             )
         }
@@ -201,14 +194,11 @@ fun QuickTradePanel(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            // SELL Button
             Button(
                 onClick = { onEvent(FullTradeChartEvent.OnTradeClick("sell")) },
                 colors = ButtonDefaults.buttonColors(containerColor = MT5_DOWN),
                 shape = RoundedCornerShape(4.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -217,13 +207,10 @@ fun QuickTradePanel(
                 }
             }
 
-            // QTY Input (Compact)
             OutlinedTextField(
                 value = currentQty,
                 onValueChange = { onEvent(FullTradeChartEvent.OnQtyChange(qty = it)) },
-                modifier = Modifier
-                    .weight(0.7f)
-                    .height(45.dp),
+                modifier = Modifier.weight(0.7f).height(45.dp),
                 textStyle = LocalTextStyle.current.copy(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
@@ -238,13 +225,10 @@ fun QuickTradePanel(
                 )
             )
 
-            // Symbol Selection/Input
             OutlinedTextField(
                 value = currentSymbol,
                 onValueChange = { onEvent(FullTradeChartEvent.OnSymbolChange(symbol = it)) },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(45.dp),
+                modifier = Modifier.weight(1f).height(45.dp),
                 textStyle = LocalTextStyle.current.copy(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
@@ -258,14 +242,11 @@ fun QuickTradePanel(
                 )
             )
 
-            // BUY Button
             Button(
                 onClick = { onEvent(FullTradeChartEvent.OnTradeClick("buy")) },
                 colors = ButtonDefaults.buttonColors(containerColor = MT5_UP),
                 shape = RoundedCornerShape(4.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -303,14 +284,14 @@ fun TradingViewWebView(
                     "autosize": true,
                     "symbol": "$symbol",
                     "interval": "D",
-                    "timezone": "Etc/UTC",
+                    "timezone": "America/New_York",
                     "theme": "$theme",
                     "style": "1",
                     "locale": "en",
                     "enable_publishing": false,
-                    "allow_symbol_change": true, // ENABLES SYMBOL SEARCH
-                    "hide_top_toolbar": false,   // SHOWS THE TOOLBAR WITH SYMBOL NAME
-                    "hide_side_toolbar": false,  // SHOWS DRAWING TOOLS
+                    "allow_symbol_change": true,
+                    "hide_top_toolbar": false,
+                    "hide_side_toolbar": false,
                     "withdateranges": true,
                     "save_image": false,
                     "container_id": "tv_container"
@@ -325,7 +306,10 @@ fun TradingViewWebView(
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
             WebView(context).apply {
-                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
                 settings.apply {
                     javaScriptEnabled = true
                     domStorageEnabled = true
