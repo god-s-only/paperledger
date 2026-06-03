@@ -1,10 +1,12 @@
 package com.paperledger.app.data.local
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -19,38 +21,35 @@ class PaperLedgerSession @Inject constructor(@ApplicationContext private val con
         val SESSION_TOKEN = stringPreferencesKey("session_token")
         val ACHRELATIONSHIP_TOKEN = stringPreferencesKey("ach_relationship_token")
         val FUNDING_TOKEN = stringPreferencesKey("funding_token")
+        val DARK_MODE = booleanPreferencesKey("dark_mode")
     }
 
     suspend fun storeUserId(id: String) {
-        context.paperLedger.edit {
-            it[PreferencesKeys.SESSION_TOKEN] = id
-        }
+        context.paperLedger.edit { it[PreferencesKeys.SESSION_TOKEN] = id }
     }
-    suspend fun getUserId(): String?{
-        return context.paperLedger.data.map {
-            it[PreferencesKeys.SESSION_TOKEN]
-        }.first()
-        }
+    suspend fun getUserId(): String? {
+        return context.paperLedger.data.map { it[PreferencesKeys.SESSION_TOKEN] }.first()
+    }
 
-    suspend fun storeACHRelationshipToken(token: String){
-        context.paperLedger.edit {
-            it[PreferencesKeys.ACHRELATIONSHIP_TOKEN] = token
-        }
+    suspend fun storeACHRelationshipToken(token: String) {
+        context.paperLedger.edit { it[PreferencesKeys.ACHRELATIONSHIP_TOKEN] = token }
     }
-    suspend fun getACHRelationshipToken(): String?{
-        return context.paperLedger.data.map {
-            it[PreferencesKeys.ACHRELATIONSHIP_TOKEN]
-        }.first()
+    suspend fun getACHRelationshipToken(): String? {
+        return context.paperLedger.data.map { it[PreferencesKeys.ACHRELATIONSHIP_TOKEN] }.first()
     }
+
     suspend fun storeFundingToken(token: String) {
-        context.paperLedger.edit {
-            it[PreferencesKeys.FUNDING_TOKEN] = token
-        }
+        context.paperLedger.edit { it[PreferencesKeys.FUNDING_TOKEN] = token }
     }
-    suspend fun getFundingToken(): String?{
-        return context.paperLedger.data.map {
-            it[PreferencesKeys.FUNDING_TOKEN]
-        }.first()
+    suspend fun getFundingToken(): String? {
+        return context.paperLedger.data.map { it[PreferencesKeys.FUNDING_TOKEN] }.first()
+    }
+
+    val darkModeFlow: Flow<Boolean> = context.paperLedger.data.map {
+        it[PreferencesKeys.DARK_MODE] ?: true
+    }
+
+    suspend fun setDarkMode(enabled: Boolean) {
+        context.paperLedger.edit { it[PreferencesKeys.DARK_MODE] = enabled }
     }
 }
-
