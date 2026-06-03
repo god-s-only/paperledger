@@ -9,7 +9,7 @@ import com.paperledger.app.domain.usecase.auth.GetUserIdUseCase
 import com.paperledger.app.domain.usecase.trade.CreatePositionOrderUseCase
 import com.paperledger.app.domain.usecase.watchlists.GetWatchlistsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,9 +23,11 @@ class FullTradeChartViewModel @Inject constructor(
     private val createPositionOrderUseCase: CreatePositionOrderUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
     private val getWatchlistsUseCase: GetWatchlistsUseCase
-): ViewModel() {
+) : ViewModel() {
+
     private val _state = MutableStateFlow(FullTradeChartState())
     val state = _state.asStateFlow()
+
     private val _uiEvent = Channel<UIEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
@@ -33,22 +35,24 @@ class FullTradeChartViewModel @Inject constructor(
         getWatchlists()
     }
 
-    fun onEvent(event: FullTradeChartEvent){
-        when(event){
+    fun onEvent(event: FullTradeChartEvent) {
+        when (event) {
             is FullTradeChartEvent.OnTradeClick -> {
                 _state.update { it.copy(side = event.side) }
                 createPositionOrder()
             }
-            is FullTradeChartEvent.OnSymbolChange -> _state.update { it.copy(symbol = event.symbol) }
+            is FullTradeChartEvent.OnSymbolChange -> _state.update { it.copy(symbol = event.symbol.uppercase()) }
             is FullTradeChartEvent.OnQtyChange -> _state.update { it.copy(qty = event.qty) }
         }
     }
 
-    private fun createPositionOrder(){
+    private fun createPositionOrder() {
         viewModelScope.launch {
-            val res = createPositionOrderUseCase.invoke(getUserIdUseCase() ?: "",
+            val res = createPositionOrderUseCase.invoke(
+                getUserIdUseCase() ?: "",
                 PositionRequestDTO(
-                    _state.value.qty, _state.value.side,
+                    _state.value.qty,
+                    _state.value.side,
                     _state.value.symbol,
                     "day",
                     "market",
@@ -56,41 +60,26 @@ class FullTradeChartViewModel @Inject constructor(
                     null
                 )
             )
-            when{
-                res.isSuccess -> {
-                    sendUIEvent(UIEvent.ShowSnackBar(message = "Position Order Created"))
-                }
+            when {
+                res.isSuccess -> sendUIEvent(UIEvent.ShowSnackBar(message = "Order placed: ${_state.value.side.uppercase()} ${_state.value.qty} ${_state.value.symbol}"))
                 res.isFailure -> {
-                    _state.update {
-                        it.copy(
-                            error = mapErrorMessage(res.exceptionOrNull()!!)
-                        )
-                    }
-                    sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error ?: ""))
+                    _state.update { it.copy(error = mapErrorMessage(res.exceptionOrNull()!!)) }
+                    sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error ?: "Order failed"))
                 }
             }
         }
     }
 
-    fun getWatchlists(){
+    fun getWatchlists() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(error = null)
+            _state.update { it.copy(error = null) }
             getWatchlistsUseCase.invoke(getUserIdUseCase.invoke() ?: "").collectLatest { result ->
                 result.fold(
                     onSuccess = { entities ->
-                        _state.update {
-                            it.copy(
-                                watchlists = entities,
-                                error = null
-                            )
-                        }
+                        _state.update { it.copy(watchlists = entities, error = null) }
                     },
                     onFailure = { e ->
-                        _state.update {
-                            it.copy(
-                                error = mapErrorMessage(e)
-                            )
-                        }
+                        _state.update { it.copy(error = mapErrorMessage(e)) }
                         sendUIEvent(UIEvent.ShowSnackBar(message = _state.value.error!!))
                     }
                 )
@@ -98,9 +87,7 @@ class FullTradeChartViewModel @Inject constructor(
         }
     }
 
-    private fun sendUIEvent(event: UIEvent){
-        viewModelScope.launch {
-            _uiEvent.send(event)
-        }
+    private fun sendUIEvent(event: UIEvent) {
+        viewModelScope.launch { _uiEvent.send(event) }
     }
 }
