@@ -40,7 +40,7 @@ val MT5_DOWN = Color(0xFFF44336)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullTradeChartScreen(
-    initialSymbol: String = "BTCUSDT",
+    initialSymbol: String = "AAPL",
     viewModel: FullTradeChartViewModel = hiltViewModel()
 ) {
     var isDarkMode by remember { mutableStateOf(true) }
@@ -175,7 +175,7 @@ fun FullTradeChartScreen(
                 .background(if (isDarkMode) Color.Black else Color.White)
         ) {
             TradingViewWebView(
-                symbol = "BINANCE:$selectedSymbol",
+                symbol = "NASDAQ:$selectedSymbol",
                 isDarkMode = isDarkMode
             )
         }
