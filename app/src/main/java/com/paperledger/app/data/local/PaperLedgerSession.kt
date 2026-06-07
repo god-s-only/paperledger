@@ -48,8 +48,14 @@ class PaperLedgerSession @Inject constructor(@ApplicationContext private val con
     val darkModeFlow: Flow<Boolean> = context.paperLedger.data.map {
         it[PreferencesKeys.DARK_MODE] ?: true
     }
-
     suspend fun setDarkMode(enabled: Boolean) {
         context.paperLedger.edit { it[PreferencesKeys.DARK_MODE] = enabled }
+    }
+    suspend fun clearAll() {
+        context.paperLedger.edit {
+            it.remove(PreferencesKeys.SESSION_TOKEN)
+            it.remove(PreferencesKeys.ACHRELATIONSHIP_TOKEN)
+            it.remove(PreferencesKeys.FUNDING_TOKEN)
+        }
     }
 }
