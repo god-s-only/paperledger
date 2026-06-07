@@ -14,14 +14,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.paperledger.app.core.UIEvent
 import com.paperledger.app.presentation.ui.features.ach_relationships.MT5InputField
-
-val MT5_BLUE = Color(0xFF2196F3)
+import com.paperledger.app.presentation.ui.features.trade.MT5_BLUE
 
 @Composable
 fun FundingScreen(
@@ -29,34 +28,50 @@ fun FundingScreen(
     modifier: Modifier = Modifier,
     navController: NavController
 ) {
-    val state = viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(key1= true) {
-        viewModel.uiEvent.collect { result ->
-            when(result){
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
                 is UIEvent.Navigate -> {
-                    navController.navigate(result.route)
+                    navController.navigate(event.route) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                        launchSingleTop = true
+                    }
                 }
                 is UIEvent.PopBackStack -> {
-
+                    navController.popBackStack()
                 }
                 is UIEvent.ShowSnackBar -> {
-
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        duration = SnackbarDuration.Long
+                    )
                 }
             }
         }
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                val isError = !snackbarData.visuals.message.startsWith("Transfer initiated")
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = if (isError) Color(0xFFB71C1C) else Color(0xFF388E3C),
+                    contentColor = Color.White
+                )
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Box(modifier = modifier
-            .fillMaxSize()
-            .padding(paddingValues)) {
-            if (state.value.isLoading) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            if (state.isLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -71,38 +86,34 @@ fun FundingScreen(
                     .fillMaxSize()
                     .padding(20.dp)
                     .verticalScroll(rememberScrollState())
-                    .alpha(if (state.value.isLoading) 0.6f else 1f),
+                    .alpha(if (state.isLoading) 0.6f else 1f),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Header
-                FundingHeader(direction = state.value.direction)
+                FundingHeader(direction = state.direction)
 
-                // Transfer Method (Locked)
                 MT5InputField(
-                    value = state.value.transferType.uppercase(),
-                    onValueChange = {  },
+                    value = state.transferType.uppercase(),
+                    onValueChange = { },
                     label = "Transfer Method",
                     enabled = false
                 )
 
-                // Relationship ID Input
                 MT5InputField(
-                    value = state.value.relationshipId,
+                    value = state.relationshipId,
                     onValueChange = { },
                     label = "Relationship ID",
-                    placeholder = "Enter Relationship UUID",
+                    placeholder = "Loading...",
                     enabled = false
                 )
 
-                // Large Amount Input
                 OutlinedTextField(
-                    value = state.value.amount,
+                    value = state.amount,
                     onValueChange = { viewModel.onEvent(FundingScreenEvent.OnAmountChange(amount = it)) },
                     label = { Text("Amount") },
                     prefix = { Text("$", color = MT5_BLUE, fontWeight = FontWeight.Bold) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    enabled = !state.value.isLoading,
+                    enabled = !state.isLoading,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MT5_BLUE,
                         focusedLabelColor = MT5_BLUE,
@@ -116,29 +127,26 @@ fun FundingScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Action Button
                 Button(
-                    onClick = {
-                        viewModel.onEvent(FundingScreenEvent.OnSubmit)
-                    },
+                    onClick = { viewModel.onEvent(FundingScreenEvent.OnSubmit) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = !state.value.isLoading,
+                    enabled = !state.isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MT5_BLUE,
                         disabledContainerColor = MT5_BLUE.copy(alpha = 0.5f)
                     ),
                     shape = RoundedCornerShape(4.dp)
                 ) {
-                    if (state.value.isLoading) {
+                    if (state.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             color = Color.White,
                             strokeWidth = 2.dp
                         )
                     } else {
-                        val isIncoming = state.value.direction.equals("INCOMING", ignoreCase = true)
+                        val isIncoming = state.direction.equals("INCOMING", ignoreCase = true)
                         Text(
                             text = if (isIncoming) "CONFIRM DEPOSIT" else "CONFIRM WITHDRAWAL",
                             fontWeight = FontWeight.ExtraBold,
