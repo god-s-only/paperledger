@@ -51,7 +51,6 @@ class FundingScreenViewModel @Inject constructor(
                             error = null
                         )
                     }
-                    storeFundingTokenUseCase.invoke(relationshipId)
                 },
                 onFailure = { e ->
                     _state.update {
@@ -93,6 +92,7 @@ class FundingScreenViewModel @Inject constructor(
                 onSuccess = {
                     _state.update { it.copy(isLoading = false, error = null) }
                     sendUIEvent(UIEvent.ShowSnackBar(message = "Transfer initiated — balance will reflect shortly"))
+                    storeFundingTokenUseCase.invoke(_state.value.relationshipId)
                     sendUIEvent(UIEvent.Navigate(Routes.WATCHLISTS_SCREEN))
                 },
                 onFailure = { e ->
