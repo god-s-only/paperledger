@@ -36,6 +36,7 @@ import com.paperledger.app.presentation.ui.features.auth.signup.SignUpScreen
 import com.paperledger.app.presentation.ui.features.chart.FullTradeChartScreen
 import com.paperledger.app.presentation.ui.features.funding.FundingScreen
 import com.paperledger.app.presentation.ui.features.onboarding.OnboardingScreen
+import com.paperledger.app.presentation.ui.features.profile.ProfileScreen
 import com.paperledger.app.presentation.ui.features.settings.SettingsScreen
 import com.paperledger.app.presentation.ui.features.settings.SettingsViewModel
 import com.paperledger.app.presentation.ui.features.trade.PlaceTradeScreen
@@ -148,6 +149,7 @@ fun MainApp() {
             ) {
                 PlaceTradeScreen(navController = navController)
             }
+            composable(Routes.PROFILE_SCREEN) { ProfileScreen(navController = navController) }
         }
     }
 }

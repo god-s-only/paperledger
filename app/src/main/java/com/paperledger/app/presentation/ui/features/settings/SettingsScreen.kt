@@ -28,6 +28,7 @@ fun SettingsScreen(
 ) {
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -37,6 +38,12 @@ fun SettingsScreen(
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
+                }
+                is UIEvent.ShowSnackBar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        duration = SnackbarDuration.Short
+                    )
                 }
                 else -> Unit
             }
@@ -81,6 +88,15 @@ fun SettingsScreen(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface
+                )
+            }
         }
     ) { paddingValues ->
         LazyColumn(
@@ -92,9 +108,9 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     title = "Profile Details",
-                    subtitle = "Manage your personal information",
+                    subtitle = "View your personal information",
                     icon = Icons.Default.Person,
-                    onClick = { }
+                    onClick = { navController.navigate(Routes.PROFILE_SCREEN) }
                 )
             }
             item {
@@ -123,26 +139,18 @@ fun SettingsScreen(
                     title = "Notifications",
                     subtitle = "Alerts for fills and price action",
                     icon = Icons.Default.Notifications,
-                    onClick = { }
+                    onClick = { viewModel.showComingSoon() }
                 )
             }
 
             item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp) }
 
-            item { SettingsSectionHeader("SECURITY & LEGAL") }
-            item {
-                SettingsItem(
-                    title = "Security",
-                    subtitle = "Passcode and Biometrics",
-                    icon = Icons.Default.Security,
-                    onClick = { }
-                )
-            }
+            item { SettingsSectionHeader("LEGAL") }
             item {
                 SettingsItem(
                     title = "Legal & Privacy",
                     icon = Icons.Default.Description,
-                    onClick = { }
+                    onClick = { viewModel.showComingSoon() }
                 )
             }
 

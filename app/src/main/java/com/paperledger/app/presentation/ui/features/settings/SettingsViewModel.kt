@@ -30,8 +30,12 @@ class SettingsViewModel @Inject constructor(
     val uiEvent = _uiEvent.receiveAsFlow()
 
     fun toggleDarkMode(enabled: Boolean) {
+        viewModelScope.launch { session.setDarkMode(enabled) }
+    }
+
+    fun showComingSoon() {
         viewModelScope.launch {
-            session.setDarkMode(enabled)
+            _uiEvent.send(UIEvent.ShowSnackBar(message = "Coming soon"))
         }
     }
 
