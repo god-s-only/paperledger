@@ -97,6 +97,13 @@ fun SignUpScreen(
         }
     }
 
+    LaunchedEffect(state.error) {
+        if (state.error != null) {
+            kotlinx.coroutines.delay(5_000)
+            viewModel.onEvent(SignUpEvent.OnRetrySubmit)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -220,7 +227,7 @@ fun SignUpScreen(
                     totalSteps = state.totalPages,
                     onPreviousClick = {
                         if (state.currentPage > 1) {
-                            viewModel.onEvent(SignUpEvent.OnNavigateBack)
+                            viewModel.onEvent(SignUpEvent.OnNavigateToPreviousPage)
                         }
                     },
                     onNextClick = {
