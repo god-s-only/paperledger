@@ -87,7 +87,9 @@ class TradeViewModel @Inject constructor(
                     onSuccess = { accountInfo ->
                         _state.update { it.copy(equity = accountInfo.lastEquity) }
                     },
-                    onFailure = {  }
+                    onFailure = {
+                        sendUIEvent(UIEvent.ShowSnackBar(message = "Error loading equity"))
+                    }
                 )
             }
         }

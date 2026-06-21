@@ -5,7 +5,7 @@ import com.paperledger.app.data.local.WatchlistsEntity
 data class FullTradeChartState(
     val error: String? = null,
     val qty: String = "0.01",
-    val symbol: String = "AAPL",
+    val symbol: String = "BTCUSDT",
     val side: String = "",
     val isDarkMode: Boolean = true,
     val showQuickTrade: Boolean = false,

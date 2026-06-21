@@ -129,7 +129,7 @@ fun MainApp() {
                 OnboardingScreen(navController = navController, authViewModel = authViewModel)
             }
             composable(Routes.SIGN_UP) { SignUpScreen(navController = navController) }
-            composable(Routes.ACH_RELATIONSHIP_SCREEN) { ACHRelationShipScreen() }
+            composable(Routes.ACH_RELATIONSHIP_SCREEN) { ACHRelationShipScreen(navController = navController) }
             composable(Routes.FUNDING_SCREEN) { FundingScreen(navController = navController) }
             composable(Routes.ASSETS_SCREEN) { AssetsScreen(navController = navController) }
             composable(Routes.WATCHLISTS_SCREEN) { WatchlistScreen(navController = navController) }

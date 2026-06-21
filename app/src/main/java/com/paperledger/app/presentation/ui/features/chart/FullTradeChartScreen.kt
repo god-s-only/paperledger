@@ -282,7 +282,7 @@ fun TradingViewWebView(
                 <script type="text/javascript">
                 new TradingView.widget({
                     "autosize": true,
-                    "symbol": "$symbol",
+                    "symbol": "BINANCE:$symbol",
                     "interval": "D",
                     "timezone": "America/New_York",
                     "theme": "$theme",

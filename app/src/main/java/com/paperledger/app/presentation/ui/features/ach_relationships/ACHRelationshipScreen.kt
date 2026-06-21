@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.paperledger.app.core.UIEvent
 
 val MT5_BLUE = Color(0xFF2196F3)
@@ -47,7 +48,8 @@ val MT5_BLUE = Color(0xFF2196F3)
 @Composable
 fun ACHRelationShipScreen(
     modifier: Modifier = Modifier,
-    viewModel: ACHRelationshipViewModel = hiltViewModel()
+    viewModel: ACHRelationshipViewModel = hiltViewModel(),
+    navController: NavController
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -66,6 +68,7 @@ fun ACHRelationShipScreen(
                     }
                 }
                 is UIEvent.Navigate -> {
+                    navController.navigate(event.route)
                 }
                 else -> Unit
             }
@@ -192,10 +195,4 @@ fun MT5InputField(
         ),
         textStyle = MaterialTheme.typography.bodyLarge
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun Default() {
-    ACHRelationShipScreen()
 }
