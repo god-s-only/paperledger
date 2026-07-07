@@ -3,26 +3,27 @@ package com.paperledger.app.presentation.ui.features.trade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-
+import com.paperledger.app.core.UIEvent
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,14 +31,38 @@ fun PlaceTradeScreen(
     navController: NavController,
     viewModel: PlaceTradeViewModel = hiltViewModel()
 ) {
-    val state = viewModel.state.collectAsState()
-
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     var showSymbolDropdown by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is UIEvent.PopBackStack -> navController.popBackStack()
+                is UIEvent.ShowSnackBar -> scope.launch {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                else -> Unit
+            }
+        }
+    }
+
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                val isError = !snackbarData.visuals.message.startsWith("Order placed")
+                        && !snackbarData.visuals.message.startsWith("Pending order")
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = if (isError) Color(0xFFB71C1C) else Color(0xFF388E3C),
+                    contentColor = Color.White
+                )
+            }
+        },
         topBar = {
             Column {
-                if (state.value.isLoading) {
+                if (state.isLoading) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth().height(3.dp),
                         color = MT5_BLUE,
@@ -57,7 +82,7 @@ fun PlaceTradeScreen(
                                     .padding(vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = "${state.value.symbol} - New Order",
+                                    text = "${state.symbol} - New Order",
                                     fontWeight = FontWeight.Bold
                                 )
                                 Icon(
@@ -71,13 +96,13 @@ fun PlaceTradeScreen(
                                 onDismissRequest = { showSymbolDropdown = false },
                                 modifier = Modifier.widthIn(min = 200.dp)
                             ) {
-                                if (state.value.watchlists.isEmpty()) {
+                                if (state.watchlists.isEmpty()) {
                                     DropdownMenuItem(
                                         text = { Text("No assets available", color = Color.Gray) },
                                         onClick = { showSymbolDropdown = false }
                                     )
                                 } else {
-                                    state.value.watchlists.forEach { item ->
+                                    state.watchlists.forEach { item ->
                                         DropdownMenuItem(
                                             text = {
                                                 Text(
@@ -90,8 +115,13 @@ fun PlaceTradeScreen(
                                                 showSymbolDropdown = false
                                             },
                                             trailingIcon = {
-                                                if (item.name == state.value.symbol) {
-                                                    Icon(Icons.Default.Check, contentDescription = null, tint = MT5_BLUE, modifier = Modifier.size(18.dp))
+                                                if (item.name == state.symbol) {
+                                                    Icon(
+                                                        Icons.Default.Check,
+                                                        contentDescription = null,
+                                                        tint = MT5_BLUE,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
                                                 }
                                             }
                                         )
@@ -119,65 +149,65 @@ fun PlaceTradeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 1. Buy/Sell Toggle
             Row(modifier = Modifier.fillMaxWidth().height(50.dp)) {
                 OrderSideButton(
                     text = "SELL",
-                    isSelected = state.value.side == "sell",
+                    isSelected = state.side == "sell",
                     activeColor = MT5_DOWN,
                     modifier = Modifier.weight(1f),
-                    onClick = { viewModel.onEvent(PlaceTradeEvent.OnSideChange(side = "sell"))}
+                    onClick = { viewModel.onEvent(PlaceTradeEvent.OnSideChange(side = "sell")) }
                 )
                 Spacer(Modifier.width(8.dp))
                 OrderSideButton(
                     text = "BUY",
-                    isSelected = state.value.side == "buy",
+                    isSelected = state.side == "buy",
                     activeColor = MT5_UP,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.onEvent(PlaceTradeEvent.OnSideChange(side = "buy")) }
                 )
             }
 
-            // 2. Order Type TabRow
             TabRow(
-                selectedTabIndex = if (state.value.orderType == "market") 0 else 1,
+                selectedTabIndex = if (state.orderType == "market") 0 else 1,
                 containerColor = Color.Transparent,
                 contentColor = MT5_BLUE,
                 divider = {}
             ) {
-                Tab(selected = state.value.orderType == "market", onClick = { viewModel.onEvent(PlaceTradeEvent.OnOrderTypeChange(orderType = "market")) }) {
+                Tab(
+                    selected = state.orderType == "market",
+                    onClick = { viewModel.onEvent(PlaceTradeEvent.OnOrderTypeChange(orderType = "market")) }
+                ) {
                     Text("Market Execution", modifier = Modifier.padding(12.dp))
                 }
-                Tab(selected = state.value.orderType == "limit", onClick = { viewModel.onEvent(PlaceTradeEvent.OnOrderTypeChange(orderType = "limit")) }) {
+                Tab(
+                    selected = state.orderType == "limit",
+                    onClick = { viewModel.onEvent(PlaceTradeEvent.OnOrderTypeChange(orderType = "limit")) }
+                ) {
                     Text("Pending Order", modifier = Modifier.padding(12.dp))
                 }
             }
 
-            // 3. Inputs Section
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                // Quantity Field
                 OrderInputField(
-                    value = state.value.qty,
+                    value = state.qty,
                     onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnQtyChange(qty = it)) },
                     label = "Quantity (Qty)",
                     placeholder = "0.00"
                 )
 
-                // Limit Price (Only for Pending)
-                if (state.value.orderType == "limit") {
+                if (state.orderType == "limit") {
                     OrderInputField(
-                        value = state.value.limitPrice,
+                        value = state.limitPrice,
                         onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnLimitPriceChange(limitPrice = it)) },
                         label = "Limit Price",
                         placeholder = "Enter target price"
                     )
                 }
 
-                // --- STOP LOSS & TAKE PROFIT ROW ---
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(modifier = Modifier.weight(1f)) {
                         OrderInputField(
-                            value = state.value.stopLoss,
+                            value = state.stopLoss,
                             onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnStopLossChange(it)) },
                             label = "Stop Loss",
                             placeholder = "0.00",
@@ -186,7 +216,7 @@ fun PlaceTradeScreen(
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         OrderInputField(
-                            value = state.value.takeProfit,
+                            value = state.takeProfit,
                             onValueChange = { viewModel.onEvent(PlaceTradeEvent.OnTakeProfitChange(it)) },
                             label = "Take Profit",
                             placeholder = "0.00",
@@ -195,8 +225,7 @@ fun PlaceTradeScreen(
                     }
                 }
 
-                // Time In Force Selector
-                TIFSelector(state.value.timeInForce) {
+                TIFSelector(state.timeInForce) {
                     viewModel.onEvent(PlaceTradeEvent.OnTimeInForceChange(timeInForce = it))
                 }
             }
@@ -204,18 +233,33 @@ fun PlaceTradeScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { if(state.value.orderType == "market") viewModel.onEvent(PlaceTradeEvent.OnPlacePositionOrder) else viewModel.onEvent(PlaceTradeEvent.OnPlacePendingOrder) },
+                onClick = {
+                    if (state.orderType == "market") {
+                        viewModel.onEvent(PlaceTradeEvent.OnPlacePositionOrder)
+                    } else {
+                        viewModel.onEvent(PlaceTradeEvent.OnPlacePendingOrder)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
+                enabled = !state.isLoading,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (state.value.side == "buy") MT5_UP else MT5_DOWN
+                    containerColor = if (state.side == "buy") MT5_UP else MT5_DOWN
                 )
             ) {
-                Text(
-                    text = if (state.value.orderType == "market") "PLACE MARKET ORDER" else "PLACE PENDING ORDER",
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 16.sp
-                )
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = if (state.orderType == "market") "PLACE MARKET ORDER" else "PLACE PENDING ORDER",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp
+                    )
+                }
             }
         }
     }
@@ -255,7 +299,7 @@ fun OrderInputField(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = labelColor,
-            fontWeight = if(labelColor != Color.Gray) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (labelColor != Color.Gray) FontWeight.Bold else FontWeight.Normal
         )
         Spacer(modifier = Modifier.height(4.dp))
         OutlinedTextField(

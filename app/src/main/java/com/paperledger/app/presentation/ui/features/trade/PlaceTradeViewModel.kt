@@ -14,7 +14,6 @@ import com.paperledger.app.domain.usecase.trade.CreatePendingOrderUseCase
 import com.paperledger.app.domain.usecase.trade.CreatePositionOrderUseCase
 import com.paperledger.app.domain.usecase.watchlists.GetWatchlistsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class PlaceTradeViewModel @Inject constructor(
