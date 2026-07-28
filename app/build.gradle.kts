@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId = "com.paperledger.app"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -88,4 +88,8 @@ dependencies {
 
     implementation("androidx.paging:paging-runtime:$paging_version")
     implementation("androidx.paging:paging-compose:$paging_version")
+    debugImplementation("com.github.god-s-only:netscope:79892d1e01")
+
+    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
 }

@@ -1,5 +1,7 @@
 package com.paperledger.app.di
 
+import android.content.Context
+import com.netscope.interceptor.NetScopeInterceptor
 import com.paperledger.app.BuildConfig
 import com.paperledger.app.core.BASE_URL
 import com.paperledger.app.core.alpacaAuthHeader
@@ -7,6 +9,7 @@ import com.paperledger.app.data.remote.api.AlpacaApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -30,7 +33,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient{
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient{
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val newRequest = chain.request().newBuilder()
@@ -41,6 +44,7 @@ object NetworkModule {
                     .build()
                 chain.proceed(newRequest)
             }
+            .addInterceptor(NetScopeInterceptor(context))
             .build()
     }
 }
